@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gizi Jona</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Gizi Jona 2.0, Phase 1. Urutan: token, dasar, menu, game, dialog, efek. */
+:root{--ink:#1C2B24;--muted:#5B6E63;--paper:#FFFBF2;--line:#E3D9C6;--leaf:#1E7A4E;--citrus:#E9B824;--tomato:#C93E29;--sky:#2D6FA8;--carrot:#C9611A;--good:#1E7A4E;--bad:#C93E29;--bg1:#CFE8F5;--bg2:#FFF3D6;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}[hidden]{display:none!important}
+[data-tod=siang]{--bg1:#BFE3F7;--bg2:#FFFBE8}[data-tod=sore]{--bg1:#F4C9A2;--bg2:#FFE6C6}
+body{margin:0;min-height:100vh;font:15px/1.5 "DM Sans",system-ui,sans-serif;color:var(--ink);background:linear-gradient(var(--bg1),var(--bg2) 55%) fixed}
+#tint{position:fixed;inset:0;pointer-events:none;background:#F28C28;opacity:0;transition:opacity 1.5s;z-index:0}[data-tod=sore] #tint{opacity:.1}
+.wrap{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:16px 16px 56px}
+h1,h2,h3{font-family:"Bricolage Grotesque","DM Sans",sans-serif;line-height:1.15;margin:0}h2{font-size:20px;margin-bottom:8px}
+small,.muted{color:var(--muted)}.eyebrow{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted);display:flex;justify-content:space-between}
+.btn{font:inherit;font-weight:700;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:14px;padding:10px 16px;min-height:44px;cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--ink)}.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.btn.primary{background:var(--leaf);color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:0 3px 0 var(--ink)}
+.btn small{display:block;font-weight:500;font-size:12px;color:inherit;opacity:.8}.btn.big{text-align:left;padding:14px 18px;font-size:17px}
+.panel{background:var(--paper);border:2px solid var(--ink);border-radius:20px;padding:16px;box-shadow:0 5px 0 rgba(28,43,36,.18)}
+.ic{vertical-align:-3px;flex:none}:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+/* menu */
+.brand{display:flex;align-items:center;gap:14px;margin:8px 0 16px}.brand h1{font-size:clamp(34px,6vw,54px);color:var(--leaf)}.brand p{margin:2px 0 0;color:var(--muted)}#logo svg{width:74px;height:74px}
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:stretch}
+.stage{position:relative;min-height:260px;border:2px solid var(--ink);border-radius:20px;overflow:hidden;background:#E6EEF3}.stage>svg.bg{position:absolute;inset:0;width:100%;height:100%}
+.stage .hero-av{position:absolute;left:8%;bottom:6%;width:min(190px,38%)}.stage .hero-plate{position:absolute;right:7%;bottom:10%;width:min(150px,30%);animation:bob 4s ease-in-out infinite}.stage .rk{position:absolute;left:12px;top:12px;background:#fff;border:2px solid var(--ink);border-radius:99px;padding:3px 12px;font-weight:700;font-size:13px}
+.hero-menu{display:grid;gap:12px;align-content:center}
+.rooms{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.room{font:inherit;text-align:left;display:flex;flex-direction:column;gap:4px;padding:14px;border:2px solid var(--ink);border-radius:18px;background:var(--paper);color:var(--ink);cursor:pointer;transition:transform .15s,box-shadow .15s}
+button.room:hover{transform:translateY(-3px);box-shadow:0 6px 0 rgba(28,43,36,.2)}.room b{font-size:16px}.room small{font-size:12px}
+.room.locked{cursor:not-allowed;background:repeating-linear-gradient(135deg,#ECE6D8 0 10px,#E3DCCB 10px 20px);color:#6B6A60;border-style:dashed}
+/* game */
+.hud{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:12px;align-items:center;background:var(--paper);border:2px solid var(--ink);border-radius:20px;padding:10px 14px}
+.who{display:flex;align-items:center;gap:10px}#av-player{width:48px;height:48px;border-radius:50%;background:#D9EFE0;border:2px solid var(--ink);overflow:hidden}#av-player svg,.npc-av svg,.toast .tav svg{width:100%;height:100%;display:block}
+.clock{font:700 26px "Bricolage Grotesque",sans-serif;font-variant-numeric:tabular-nums}.time{display:flex;align-items:center;gap:8px}
+.track{height:12px;border-radius:99px;background:#E7E1D2;overflow:hidden;border:1.5px solid var(--ink)}.track i{display:block;height:100%;background:var(--leaf);border-radius:99px;transition:width .3s}
+.score{position:relative;text-align:right}.score b{font:800 28px "Bricolage Grotesque",sans-serif;display:block;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.stat{background:var(--paper);border:2px solid var(--ink);border-radius:16px;padding:10px 12px}.stat .top{display:flex;justify-content:space-between;font-weight:700}.stat .val{font-variant-numeric:tabular-nums}.stat .note{font-size:12px;color:var(--bad);min-height:16px}
+.tenaga .track i{background:var(--citrus)}.moral .track i{background:var(--sky)}.kacau .track i{background:var(--tomato)}.stat.warn{border-color:var(--bad);animation:pulse 1.2s infinite}
+.areas{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px}.atab{font:inherit;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;border:2px solid var(--ink);background:#fff;border-radius:99px;padding:8px 14px;min-height:42px;cursor:pointer;color:var(--ink)}
+.atab.on{background:var(--ink);color:#fff}.atab b{background:#EFE9DA;color:var(--ink);border-radius:99px;min-width:22px;text-align:center;font-size:12px;padding:1px 6px}.atab b.hot{background:var(--bad);color:#fff;animation:pulse 1s infinite}
+.main{display:grid;grid-template-columns:1.6fr 1fr;gap:14px}.side{display:grid;gap:14px;align-content:start}
+.scene{position:relative;height:132px;border:2px solid var(--ink);border-radius:14px;overflow:hidden;margin-bottom:12px}.scene>svg{position:absolute;inset:0;width:100%;height:100%}
+.scene .pa{position:absolute;bottom:4px;width:78px;height:78px}.scene h2{position:absolute;left:10px;top:8px;margin:0;background:#fff;border:2px solid var(--ink);border-radius:99px;padding:2px 12px;font-size:15px}
+#tasks{display:grid;gap:10px}.empty{margin:0;padding:18px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:14px}
+.task{--a:var(--sky);--ab:#DCEBF5;font:inherit;text-align:left;display:flex;gap:12px;width:100%;padding:12px;border:2px solid var(--ink);border-left:8px solid var(--a);border-radius:16px;background:#fff;color:var(--ink);cursor:pointer;animation:slidein .35s both;transition:transform .15s,box-shadow .15s}
+.task:hover{transform:translateY(-2px);box-shadow:0 5px 0 rgba(28,43,36,.18)}.task.t-poli{--a:var(--leaf);--ab:#DDF0E3}.task.t-dapur{--a:var(--carrot);--ab:#FBE6D0}.task.t-mitos{--a:#B8890B;--ab:#FAF0C8}
+.ti{flex:none;width:44px;height:44px;border-radius:50%;background:var(--ab);color:var(--a);display:grid;place-items:center}.tb{flex:1;display:grid;gap:4px;min-width:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tags em,.lvt{font-style:normal;font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;background:var(--ab);color:var(--ink)}
+.lv1{background:#DDF0E3!important}.lv2{background:#FAF0C8!important}.lv3{background:#F9D9D2!important}.tags .st{background:#EFE9DA}
+.tm{display:flex;gap:14px;font-size:13px;color:var(--muted)}.tm .ic{margin-right:3px}.bar{height:8px;background:#EFE9DA;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;width:100%;background:var(--a);transition:width .3s}
+.task.urgent{border-color:var(--bad);animation:pulse 1s infinite}.task.urgent .bar i{background:var(--bad)}
+#log{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13px}#log time{font-weight:700;margin-right:8px;color:var(--muted)}.no{color:var(--bad);font-weight:700}.ok{color:var(--good);font-weight:700}
+/* dialog */
+.layer{position:fixed;inset:0;z-index:50;background:rgba(28,43,36,.55);display:grid;place-items:center;padding:16px;animation:fade .2s}
+.dialog{width:min(640px,100%);max-height:92vh;overflow:auto;background:var(--paper);border:2px solid var(--ink);border-radius:22px;padding:20px;position:relative;animation:rise .25s}
+.npc{display:flex;gap:12px;align-items:center;margin-bottom:12px}.npc-av{flex:none;width:58px;height:58px;border-radius:50%;background:#E6EEF3;border:2px solid var(--ink);overflow:hidden}
+.bubble{position:relative;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:8px 12px;display:grid;font-size:14px}.bubble b{font-size:12px;color:var(--muted)}
+.dtags{display:flex;gap:6px;margin-bottom:6px}.tag{font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;color:#fff;background:var(--sky)}.tag.t-poli{background:var(--leaf)}.tag.t-dapur{background:var(--carrot)}.tag.t-mitos{background:#B8890B}
+.q{margin:8px 0 14px;font-size:16px}.opts{display:grid;gap:10px}
+.opt{font:inherit;text-align:left;padding:12px 14px;border:2px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;min-height:48px;transition:transform .12s,background .15s}.opt:hover:not(:disabled){transform:translateX(4px);background:#F3EEDF}
+.opt.right{background:#D9EFE0;border-color:var(--good)}.opt.wrong{background:#F9D9D2;border-color:var(--bad)}.opt:disabled{cursor:default;color:var(--ink)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:14px;border:2px solid var(--good);background:#EAF6EE}.fb.no{border-color:var(--bad);background:#FBE9E5}.fb h3{margin-bottom:4px}.fb p{margin:6px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;animation:rise .3s both}.chip.up{background:#D9EFE0}.chip.down{background:#F9D9D2}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}.dialog label{display:grid;gap:4px;margin:10px 0;font-weight:700}.dialog input[type=text],.dialog select{font:inherit;padding:10px;border:2px solid var(--ink);border-radius:10px;background:#fff}
+.dialog label.chk{display:flex;gap:8px;align-items:center}
+table.board{width:100%;border-collapse:collapse}.board th,.board td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line)}
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.bd{display:flex;gap:10px;align-items:center;padding:10px;border:2px solid var(--ink);border-radius:14px;background:#fff}.bd.off{opacity:.5;filter:grayscale(1)}.bd .ic2{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--citrus)}.bd span{display:block;font-size:12px;color:var(--muted)}
+.cgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0}.cgrid div{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px}.cgrid b{display:block;font-size:20px}.cgrid span{font-size:12px;color:var(--muted)}
+/* akhir shift */
+.end{max-width:720px;margin:12px auto}.end .big{font:800 56px "Bricolage Grotesque",sans-serif}.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}.grid2 div{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px}.grid2 b{display:block;font-size:20px}.grid2 span{font-size:12px;color:var(--muted)}
+.newb{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.newb span{background:var(--citrus);border:2px solid var(--ink);border-radius:99px;padding:3px 12px;font-weight:700}.save{display:flex;gap:8px;margin:12px 0}.save input{flex:1;font:inherit;padding:10px;border:2px solid var(--ink);border-radius:12px}
+.endhead{display:flex;align-items:center;gap:14px}.endhead .npc-av{width:72px;height:72px}
+/* toast dan efek */
+#toasts{position:fixed;z-index:60;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:grid;gap:8px;width:min(440px,92vw);pointer-events:none}
+.toast{display:flex;gap:10px;align-items:center;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:8px 12px;box-shadow:0 4px 0 rgba(28,43,36,.2);animation:rise .3s both;font-size:14px}.toast .tav{flex:none;width:34px;height:34px;border-radius:50%;overflow:hidden;background:#E6EEF3}
+.toast.warn{border-color:var(--bad);background:#FBE9E5}.toast.ach{background:#FFF1BF}.toast.bad{border-color:var(--bad)}
+.pop{position:absolute;right:0;top:0;font:800 20px "Bricolage Grotesque",sans-serif;color:var(--good);animation:floatup 1.1s both;pointer-events:none}
+.bump{animation:bumpa .4s}.shake{animation:shake .4s}.flash::after{content:"";position:fixed;inset:0;background:var(--bad);opacity:0;pointer-events:none;z-index:70;animation:flashbad .45s}
+.burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}.burst i{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--citrus);animation:burst .8s ease-out both}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(201,62,41,.25)}}@keyframes slidein{from{opacity:0;transform:translateY(8px)}}@keyframes fade{from{opacity:0}}@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+@keyframes floatup{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-38px)}}@keyframes bumpa{40%{transform:scale(1.18)}}@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes flashbad{30%{opacity:.18}}@keyframes bob{50%{transform:translateY(-6px)}}@keyframes burst{to{transform:translate(var(--x),var(--y));opacity:0}}
+[data-motion=off] *,[data-motion=off] *::after{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){*,*::after{animation:none!important;transition:none!important}}
+@media(max-width:820px){.hero,.main{grid-template-columns:1fr}.hud{grid-template-columns:auto 1fr auto;grid-template-areas:"w t s" "p p p"}.hud .who{grid-area:w}.hud .time{grid-area:t}.hud .score{grid-area:s}.hud .prog{grid-area:p}.hud #b-pause{grid-column:1/-1}.stats{grid-template-columns:repeat(2,1fr)}.stage{min-height:220px}}
+
+/* ===== Patient Case Room ===== */
+.notice{font-size:13px;color:var(--muted);border-left:4px solid var(--citrus);background:#FFF7D6;padding:8px 12px;border-radius:8px;margin:8px 0}
+.cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.case-card .tags{margin-bottom:6px}.case-card h2{margin-bottom:4px}
+.cr-top{display:flex;gap:12px;align-items:center;margin:8px 0 12px}.cr-top h1{font-size:28px}
+.phases{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.phases span{font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px;border:2px solid var(--ink);background:#fff}.phases .done{background:#D9EFE0}.phases .on{background:var(--ink);color:#fff}.phases .ev{background:var(--tomato);border-color:var(--tomato)}
+.cr-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:14px;align-items:start}.cr-grid aside{display:grid;gap:12px;position:sticky;top:8px}
+.stage-card{background:var(--paper);border:2px solid var(--ink);border-radius:20px;padding:18px}.stage-card h2{font-size:22px}
+.meters{display:grid;gap:8px}.meter .top{display:flex;justify-content:space-between;font-size:13px;font-weight:700}.kon .track i{background:var(--good)}.tru .track i{background:var(--sky)}.tim .track i{background:var(--citrus)}.tim.over .track i{background:var(--bad)}
+.pc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}.pc-head .npc-av{width:54px;height:54px}
+.chart .sec{padding:6px 0;border-bottom:1px solid var(--line)}.chart .sec h3{font-size:12px;color:var(--muted);font-family:"DM Sans",sans-serif}.chart .sec p{margin:2px 0 0;font-size:14px}.chart .sec.new{background:#FFF7D6;padding:8px;border-radius:10px;border:0;margin-top:6px}
+.reqs{display:grid;gap:8px}.reqs .btn{text-align:left;font-size:14px;padding:8px 12px;min-height:40px}
+.opt.sel{background:#E7F3EC;border-color:var(--leaf)}.num{display:flex;gap:8px;align-items:center;margin:10px 0}.num input,.stage-card textarea,.matches select{font:inherit;padding:10px;border:2px solid var(--ink);border-radius:12px;background:#fff;width:100%}.num input{max-width:200px}
+.matches{display:grid;gap:10px;margin:10px 0}.matches label{display:grid;gap:4px;font-weight:700}.stage-card textarea{margin:8px 0}
+.ol{list-style:none;margin:10px 0;padding:0;display:grid;gap:8px}.ol li{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;cursor:grab}.ol .ot{flex:1}.grip{color:var(--muted)}.btn.sm{min-height:34px;padding:2px 10px;box-shadow:0 2px 0 var(--ink)}
+.dimrow{display:grid;grid-template-columns:150px 1fr 48px;gap:10px;align-items:center;margin:8px 0}.dimrow b{text-align:right}
+details{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:8px 12px;margin:8px 0}details summary{cursor:pointer}details .no,.fb .no{color:var(--bad)}
+.rc{display:grid;gap:8px}.rc small{display:block;color:var(--muted)}#recent{margin-top:16px}
+@media(max-width:820px){.cr-grid{grid-template-columns:1fr}.cr-grid aside{position:static}.dimrow{grid-template-columns:110px 1fr 44px}}
+</style></head><body><div id="tint"></div>
+<div class="wrap">
+<div id="toasts" aria-live="polite"></div>
+
+<section id="s-menu">
+  <header class="brand"><span id="logo"></span><div><h1>Gizi Jona</h1><p>Simulasi dietisien: satu shift, banyak cerita.</p></div></header>
+  <div class="hero">
+    <div class="stage" id="hero-art" aria-hidden="true"></div>
+    <div class="panel hero-menu">
+      <button class="btn big" id="m-continue">Continue Game<small id="cont-note"></small></button>
+      <button class="btn big primary" id="m-new">New Game<small>Shift baru, 08:00 sampai 17:00</small></button>
+      <button class="btn big" id="m-cases">Patient Case Room<small>Pasien nyata, lima tahap, keputusan bercabang</small></button>
+      <button class="btn big" id="m-daily">Daily Shift<small id="daily-note"></small></button>
+    </div>
+  </div>
+  <div class="rooms" id="rooms"></div>
+  <section class="panel" id="recent" hidden></section>
+</section>
+
+<section id="s-game" hidden>
+  <div class="hud">
+    <div class="who"><div id="av-player"></div><div><b id="pname-h">Dietisien</b><br><small id="rank-h"></small></div></div>
+    <div class="time"><span id="tod-ic"></span><div class="clock" id="clock">08:00</div></div>
+    <div class="prog"><div class="eyebrow"><span>08:00</span><span id="tod-name">Pagi</span><span>17:00</span></div><div class="track"><i id="dayfill" style="width:0%"></i></div></div>
+    <div class="score"><span class="eyebrow" style="justify-content:flex-end">Skor</span><b id="score">0</b><span id="floatbox"></span></div>
+    <button class="btn" id="b-pause">Jeda</button>
+  </div>
+  <div class="stats">
+    <div class="stat tenaga" id="st-tenaga"><div class="top"><span>Tenaga</span><span class="val" id="v-tenaga">100</span></div><div class="track"><i id="f-tenaga"></i></div><div class="note" id="n-tenaga"></div></div>
+    <div class="stat moral" id="st-moral"><div class="top"><span>Moral</span><span class="val" id="v-moral">70</span></div><div class="track"><i id="f-moral"></i></div><div class="note" id="n-moral"></div></div>
+    <div class="stat dompet"><div class="top"><span>Dompet</span></div><div class="val" id="v-dompet" style="font:800 20px 'Bricolage Grotesque',sans-serif">Rp 50.000</div><div class="note" style="color:var(--muted)">Uang saku shift</div></div>
+    <div class="stat kacau" id="st-kacau"><div class="top"><span>Kacau</span><span class="val" id="v-kacau">10</span></div><div class="track"><i id="f-kacau"></i></div><div class="note" id="n-kacau"></div></div>
+  </div>
+  <div class="areas" id="areas" role="tablist" aria-label="Area kerja"></div>
+  <div class="main">
+    <div class="panel">
+      <div class="scene" id="scene-art"></div>
+      <h2 style="display:flex;justify-content:space-between">Tugas semasa <small id="tcount">0 antre</small></h2>
+      <div id="tasks"></div>
+    </div>
+    <div class="side">
+      <div class="panel"><h2>Jeda</h2><p>Ngopi dan regangkan badan. Tenaga naik 30, moral naik 3, tapi 15 menit berjalan dan antrean tidak menunggu.</p><button class="btn" id="b-break">Ngopi (Rp 5.000)</button></div>
+      <div class="panel"><h2>Catatan shift</h2><ul id="log"></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="s-end" class="end" hidden></section>
+<section id="s-case" hidden></section>
+</div>
+<div class="layer" id="sheet" hidden><div class="dialog" id="sheet-body" role="dialog" aria-modal="true" aria-label="Tugas"></div></div>
+<div class="layer" id="overlay" hidden><div class="dialog" id="ov-body" role="dialog" aria-modal="true"></div></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s)};
+var fmt=function(n){return Math.round(n).toLocaleString("id-ID")};
+var rp=function(n){return "Rp "+fmt(n)};
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))};
+var pad=function(n){return (n<10?"0":"")+n};
+var START=480,END=1020;
+
+/* ===== RNG: Daily Shift memakai seed harian, mode lain Math.random ===== */
+var RNG=null;
+function mk(seed){return{s:seed>>>0,n:function(){this.s=(this.s+1831565813)>>>0;var t=this.s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}}
+var rand=function(a,b){return a+(RNG?RNG.n():Math.random())*(b-a)};
+var shuffle=function(a,seeded){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor((seeded&&RNG?RNG.n():Math.random())*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a};
+
+/* ===== DATA: jenis tugas, NPC, soal, lencana ===== */
+var TYPES={
+  bangsal:{n:"Bangsal",area:"Bangsal Rumah Sakit",pay:25000,dl:80,lv:3},
+  poli:{n:"Poli",area:"Poli Gizi",pay:20000,dl:70,lv:2},
+  dapur:{n:"Dapur gizi",area:"Dapur Gizi",pay:15000,dl:60,lv:2},
+  mitos:{n:"Mitos kilat",area:"Komunitas",pay:10000,dl:50,lv:1}
+};
+var LV=["","Mudah","Sedang","Sulit"],AI={all:"all",bangsal:"bed",poli:"desk",dapur:"pot",mitos:"people"};
+var AREAS={all:"Rumah Sakit",bangsal:"Bangsal Rumah Sakit",poli:"Poli Gizi",dapur:"Dapur Gizi",mitos:"Komunitas"};
+var CAST={all:["doctor","nurse"],bangsal:["nurse","patient"],poli:["patient"],dapur:["kitchen"],mitos:["patient","nurse"]};
+var NPC={
+  bangsal:[["Perawat Rani","nurse","Ahli gizi, pasien di kamar ini perlu arahan makan sekarang."],["dr. Bima","doctor","Tolong atur dietnya, saya tunggu masukanmu."]],
+  poli:[["Pasien poli","patient","Permisi, boleh konsultasi soal makan?"]],
+  dapur:[["Pak Joko, dapur","kitchen","Ada masalah di dapur, mohon dicek dulu."]],
+  mitos:[["Warga komunitas","patient","Katanya begini, benar nggak ya?"]]
+};
+var POOL=[
+ {k:"bangsal",h:"Diabetes minta teh manis",q:"Pak Darto (58), diabetes tipe 2, gula darah sewaktu 280 mg/dL. Ia minta nasi satu piring penuh dan teh manis dari kantin.",
+  a:["Beri nasi porsi terukur, teh tanpa gula, dan jelaskan alasannya","Turuti saja, pasien lebih tenang kalau kenyang","Puasakan seharian sampai gula darah turun"],
+  w:"Pasien diabetes tetap perlu makan teratur dengan karbohidrat terukur dan gula sederhana dibatasi. Puasa seharian tanpa arahan dokter berisiko hipoglikemia."},
+ {k:"bangsal",h:"Kalium terlalu tinggi",q:"Bu Rina menjalani hemodialisis, kalium darahnya 5,9 mmol/L. Menu makan siang: bubur, ayam, sup bayam, pisang, dan jus alpukat.",
+  a:["Ganti pisang dan jus alpukat dengan apel, serta kurangi sup bayam","Biarkan, buah baik untuk semua pasien","Ganti seluruh menu dengan teh manis dan roti"],
+  w:"Pisang, alpukat, dan bayam tinggi kalium. Pada pasien ginjal dengan kalium tinggi, pilih buah rendah kalium seperti apel, dan energi harian tetap harus tercukupi."},
+ {k:"bangsal",h:"Ikan asin di bangsal",q:"Pak Hasan (62), hipertensi, tensi 165/100. Keluarganya membawa ikan asin, kerupuk, dan sambal terasi ke bangsal.",
+  a:["Jelaskan batas natrium di bawah 2.000 mg per hari dan sarankan lauk segar tanpa banyak garam","Izinkan sedikit setiap hari","Larang semua makanan luar tanpa penjelasan"],
+  w:"Anjuran umum membatasi natrium di bawah 2.000 mg per hari, sekitar 1 sendok teh garam. Makanan awetan seperti ikan asin sangat tinggi natrium, dan penjelasan lebih efektif daripada larangan saja."},
+ {k:"bangsal",h:"Hari pertama pasca operasi",q:"Pasien hari pertama pasca operasi usus. Dokter bedah sudah mengizinkan makan, dan perawat menanyakan diet awalnya.",
+  a:["Mulai cair jernih, naik bertahap ke cair penuh, saring, lalu lunak","Langsung nasi biasa agar cepat pulih","Tunda semua asupan sampai hari ketiga tanpa konsultasi"],
+  w:"Diet pasca operasi saluran cerna dinaikkan bertahap sesuai toleransi. Menunda makan tanpa alasan medis justru tidak dianjurkan."},
+ {k:"bangsal",h:"Tersedak saat minum",q:"Pasien stroke dengan disfagia tersedak setiap minum air putih biasa. Keluarganya mengeluh kenapa makanan pasien dikentalkan.",
+  a:["Beri cairan yang dikentalkan sesuai rekomendasi terapis wicara dan jelaskan ke keluarga","Beri air biasa, tapi sedikit-sedikit","Langsung pasang selang makan tanpa asesmen"],
+  w:"Cairan encer paling sulit dikendalikan pada disfagia. Tingkat kekentalan ditentukan bersama tim, dan selang makan dipertimbangkan setelah asesmen."},
+ {k:"bangsal",h:"Skor MST tiga",q:"Skrining gizi (MST) pasien baru menunjukkan skor 3. Sore nanti dokter visite.",
+  a:["Skor 2 atau lebih berarti berisiko malnutrisi, lanjutkan asesmen gizi lengkap","Skor 3 masih aman, skrining ulang minggu depan","Abaikan, skrining itu tugas perawat saja"],
+  w:"Pada Malnutrition Screening Tool, skor 2 atau lebih menandakan risiko malnutrisi dan perlu asesmen serta intervensi gizi."},
+ {k:"bangsal",h:"Kemoterapi dan tak nafsu makan",q:"Bu Lastri menjalani kemoterapi, berat badannya turun 8% dalam sebulan, dan hari ini ia makan hanya tiga sendok.",
+  a:["Beri makanan padat energi porsi kecil tapi sering, tambah suplemen gizi oral","Paksa habiskan porsi besar tiga kali sehari","Beri diet rendah kalori supaya mual berkurang"],
+  w:"Pada kanker dengan penurunan berat badan, kebutuhan energi dan protein meningkat. Porsi kecil sering dan suplemen oral membantu mencapai target."},
+
+ {k:"poli",h:"Makan untuk dua orang",q:"Ibu Sari hamil trimester kedua. Mertuanya bilang ia harus makan untuk dua orang. Berapa tambahan energi yang kamu sarankan?",
+  a:["Sekitar 300 kkal per hari","Sekitar 1.000 kkal per hari","Tidak perlu tambahan sama sekali"],
+  w:"AKG 2019 menganjurkan tambahan sekitar 300 kkal per hari pada trimester kedua dan ketiga. Kualitas asupan seperti protein, zat besi, dan folat sama pentingnya."},
+ {k:"poli",h:"Balita sangat pendek",q:"Balita 18 bulan, panjang badan menurut umur di bawah -3 SD. Ibunya hanya memberi bubur nasi dan susu.",
+  a:["Tambah protein hewani setiap hari (telur, ikan, hati ayam) dan rujuk untuk pemeriksaan lanjut","Cukup tambah susu formula","Tunggu saja, nanti mengejar sendiri"],
+  w:"Di bawah -3 SD berarti stunting berat. Protein hewani pada MPASI penting, dan perlu penilaian tenaga kesehatan untuk mencari penyebab lain."},
+ {k:"poli",h:"Diet jus tujuh hari",q:"Remaja 16 tahun ingin diet jus saja selama 7 hari supaya cepat kurus.",
+  a:["Tolak dengan ramah dan ajarkan pola Isi Piringku yang seimbang","Setujui asal jusnya tanpa gula","Sarankan 14 hari supaya hasilnya lebih terasa"],
+  w:"Diet ekstrem kekurangan protein dan zat gizi lain, apalagi pada remaja yang masih tumbuh. Isi Piringku adalah panduan seimbang yang bisa dijalani lama."},
+ {k:"poli",h:"Nenek makin lemas",q:"Nenek 72 tahun, ototnya menyusut. Ia makan sedikit protein karena giginya kurang baik.",
+  a:["Naikkan protein ke sekitar 1,0 sampai 1,2 g/kg berat badan, tekstur lunak, plus latihan beban ringan","Kurangi protein supaya ginjal aman","Cukup beri vitamin saja"],
+  w:"Lansia dengan risiko sarkopenia memerlukan protein lebih tinggi dibanding dewasa muda, dikombinasikan dengan aktivitas fisik. Pembatasan protein hanya bila ada indikasi dari dokter."},
+ {k:"poli",h:"Hitung kebutuhan cepat",q:"Perempuan 60 kg, aktivitas ringan, ingin menjaga berat badan. Pakai perkiraan cepat 30 kkal per kg berat badan. Berapa kebutuhan energinya?",
+  a:["Sekitar 1.800 kkal","Sekitar 1.200 kkal","Sekitar 3.000 kkal"],
+  w:"60 kg × 30 kkal = 1.800 kkal per hari. Ini perkiraan kasar sebelum asesmen lengkap."},
+ {k:"poli",h:"MPASI di usia empat bulan",q:"Ibu bayi 4 bulan bertanya apakah boleh mulai MPASI karena bayinya sering rewel dan menangis setelah menyusu.",
+  a:["Lanjutkan ASI eksklusif sampai 6 bulan, cari penyebab rewel, lalu mulai MPASI dengan protein hewani","Mulai bubur beras sekarang","Ganti ASI dengan air tajin"],
+  w:"Rekomendasinya ASI eksklusif sampai usia 6 bulan, baru MPASI. Rewel punya banyak penyebab dan belum tentu karena lapar."},
+ {k:"poli",h:"Hitung IMT",q:"Pasien berat 80 kg, tinggi 160 cm. Berapa IMT dan kategorinya menurut kriteria Asia-Pasifik?",
+  a:["IMT 31,3: obesitas","IMT 25: normal","IMT 20: kurus"],
+  w:"IMT = 80 ÷ (1,6 × 1,6) = 31,3. Pada kriteria Asia-Pasifik, IMT 25 ke atas sudah masuk obesitas."},
+
+ {k:"dapur",h:"Nasi tiga jam di meja",q:"Nasi dan lauk pasien ditemukan di meja distribusi sudah 3 jam pada suhu ruang dan belum dipanaskan.",
+  a:["Buang dan masak ulang, makanan matang jangan lebih dari 2 jam di suhu ruang","Panaskan sebentar lalu sajikan","Simpan di kulkas lalu sajikan nanti"],
+  w:"Bakteri berkembang cepat pada suhu 5 sampai 60 °C. Makanan matang tidak boleh lebih dari 2 jam di suhu ruang, dan pemanasan ulang tidak selalu menghilangkan toksin bakteri."},
+ {k:"dapur",h:"Pecel untuk pasien alergi",q:"Pasien alergi kacang tanah. Menu makan siang hari ini pecel dengan bumbu kacang.",
+  a:["Ganti menu, pisahkan alat masak, dan beri label alergi pada nampan","Sajikan bumbunya terpisah","Singkirkan saja kacang yang terlihat"],
+  w:"Pada alergi makanan, jejak alergen tetap berbahaya dan kontaminasi silang mudah terjadi. Ganti menu dan beri penanda yang jelas."},
+ {k:"dapur",h:"Jeroan untuk asam urat",q:"Menu pasien asam urat hari ini berisi jeroan sapi dan emping melinjo.",
+  a:["Ganti dengan telur atau tahu, kurangi sumber purin tinggi","Biarkan, asal banyak minum teh","Tambah porsi jeroan karena kaya zat besi"],
+  w:"Jeroan dan melinjo tinggi purin. Pasien asam urat dianjurkan membatasinya dan banyak minum air putih."},
+ {k:"dapur",h:"Anggaran protein menipis",q:"Anggaran bahan pangan minggu ini menipis, sementara pasien tetap butuh protein yang cukup.",
+  a:["Pilih protein terjangkau seperti telur, tempe, dan ikan lokal","Kurangi porsi protein untuk semua pasien","Beli daging premium agar pasien senang"],
+  w:"Telur, tempe, dan ikan lokal memberi protein bermutu dengan harga lebih ramah. Memotong protein merugikan pemulihan."},
+ {k:"dapur",h:"Penjamah tanpa cuci tangan",q:"Petugas dapur mulai menyiapkan makanan pasien tanpa mencuci tangan sepulang dari toilet.",
+  a:["Hentikan, cuci tangan dengan sabun minimal 20 detik, lalu lanjut","Cukup hand sanitizer sambil jalan","Biarkan, sarung tangan sudah dipakai"],
+  w:"Mencuci tangan dengan sabun dan air mengalir minimal 20 detik adalah langkah dasar higiene. Sarung tangan tidak menggantikannya."},
+
+ {k:"mitos",h:"Makan malam bikin gemuk",q:"Pasien berkata, 'Makan setelah jam 7 malam pasti bikin gemuk.' Apa tanggapanmu?",
+  a:["Mitos. Yang berpengaruh adalah total energi sehari, bukan jamnya semata","Fakta. Metabolisme berhenti setelah jam 7","Fakta, tapi hanya untuk nasi"],
+  w:"Berat badan ditentukan oleh keseimbangan energi harian. Makan larut malam bisa memicu asupan berlebih, tetapi jamnya sendiri bukan penyebab langsung."},
+ {k:"mitos",h:"Jus detox",q:"Klaim di media sosial: 'Jus detox membersihkan racun dari tubuh.'",
+  a:["Mitos. Hati dan ginjal sudah menjalankan detoksifikasi alami","Fakta, terutama jus hijau","Fakta, kalau diminum tiga hari"],
+  w:"Tubuh sudah punya sistem pembersih sendiri. Jus tetap boleh sebagai bagian asupan buah dan sayur, tetapi tidak ajaib."},
+ {k:"mitos",h:"Telur dan kolesterol",q:"Pasien sehat takut makan telur karena 'telur bikin kolesterol tinggi'.",
+  a:["Pada kebanyakan orang sehat, satu butir sehari masih wajar dalam pola makan seimbang","Maksimal satu butir per bulan","Makan putihnya saja selamanya"],
+  w:"Pada kebanyakan orang, lemak jenuh lebih berpengaruh pada kolesterol darah dibanding kolesterol makanan. Pasien dengan kondisi tertentu perlu saran individual."},
+ {k:"mitos",h:"Air lemon pembakar lemak",q:"Klaim: 'Air lemon di pagi hari membakar lemak perut.'",
+  a:["Mitos. Tidak ada makanan yang membakar lemak di bagian tubuh tertentu","Fakta, lemon melipatgandakan metabolisme","Fakta, asalkan dicampur madu"],
+  w:"Penurunan lemak tubuh berasal dari defisit energi menyeluruh, bukan dari satu minuman. Air lemon boleh diminum sebagai pilihan tanpa gula."}
+];
+var BADGES=[
+ {id:"teliti",n:"Teliti",d:"Akurasi 80% atau lebih, minimal 8 jawaban.",ic:"T",ok:function(s){var a=s.right+s.wrong;return a>=8&&s.right/a>=.8}},
+ {id:"rapi",n:"Meja Rapi",d:"Selesaikan shift dengan kacau 20 atau kurang.",ic:"R",ok:function(s){return s.kacau<=20}},
+ {id:"rajin",n:"Rajin",d:"Tangani 12 tugas atau lebih dalam satu shift.",ic:"J",ok:function(s){return s.right+s.wrong>=12}},
+ {id:"antimitos",n:"Anti Mitos",d:"Jawab benar 3 mitos kilat atau lebih.",ic:"M",ok:function(s){return s.mitosRight>=3}},
+ {id:"dompet",n:"Dompet Tebal",d:"Akhiri shift dengan Rp 300.000 atau lebih.",ic:"D",ok:function(s){return s.dompet>=300000}},
+ {id:"ngopi",n:"Ngopi Cerdas",d:"Ambil jeda setidaknya sekali dan tetap selesai.",ic:"N",ok:function(s){return s.breaks>=1}},
+ {id:"beruntun",n:"Beruntun",d:"Jawab benar 5 tugas berturut-turut.",ic:"B",ok:function(s){return s.best>=5}}
+];
+var RANKS=[["Magang Gizi",0],["Ahli Gizi Muda",800],["Ahli Gizi Andal",1800],["Kepala Instalasi Gizi",2800]];
+function rankIdx(s){var r=0;RANKS.forEach(function(x,i){if(s>=x[1])r=i});return r}
+function rankOf(s){return RANKS[rankIdx(s)][0]}
+
+/* ===== STORAGE ===== */
+function load(key,def){try{var v=localStorage.getItem(key);return v?JSON.parse(v):def}catch(e){return def}}
+function save(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch(e){}}
+var SET=Object.assign({name:"",motion:true,speed:2},load("gizi-jona-set",{}));
+var CAR=Object.assign({shifts:0,best:0,total:0,right:0,wrong:0,missed:0},load("gizi-jona-career",{}));
+function applySet(){document.documentElement.dataset.motion=SET.motion?"on":"off"}
+applySet();
+
+/* ===== ART: ikon, avatar, piring, latar area (semua SVG inline) ===== */
+var IC={bed:'<path d="M3 18v-8h18v8M3 14h18M6 10V7h5v3"/>',desk:'<path d="M4 8h16v4H4zM6 12v7M18 12v7M9 8V5h6v3"/>',pot:'<path d="M5 10h14v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3zM3 10h18M9 6c0-2 3-2 3-4M15 6c0-2 3-2 3-4"/>',people:'<circle cx="8" cy="8" r="3"/><circle cx="16" cy="9" r="2.5"/><path d="M3 20c0-4 3-6 5-6s5 2 5 6M14 20c0-3 2-5 4-5s3 2 3 5"/>',all:'<path d="M4 20V8l8-4 8 4v12zM9 20v-6h6v6"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',clock:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',coin:'<circle cx="12" cy="12" r="8"/><path d="M9 12h6M12 9v6"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',dusk:'<path d="M4 17h16M7 17a5 5 0 0 1 10 0M12 6v3M5 9l2 2M19 9l-2 2"/>',career:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',ach:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3M12 13v4M8 20h8"/>',board:'<path d="M5 20v-8h4v8M10 20V6h4v14M15 20v-9h4v9"/>',set:'<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/>'};
+function ic(n,s){return '<svg class="ic" width="'+(s||18)+'" height="'+(s||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[n]+'</svg>'}
+function av(role,tired){
+  var C={player:["#fff","#1E7A4E","#3A2A20"],doctor:["#fff","#2D6FA8","#2B2B2B"],nurse:["#8FD1C8","#fff","#5A3A2A"],patient:["#BBD6EE","#fff","#9A9A9A"],kitchen:["#E8873A","#fff","#3A2A20"]}[role],k="#1C2B24";
+  var hat=role==="kitchen"?'<path d="M20 20c-4-10 8-14 12-8 4-6 16-2 12 8z" fill="#fff" stroke="'+k+'" stroke-width="2"/>':role==="nurse"?'<path d="M22 18h20l-3-8H25z" fill="#fff" stroke="'+k+'" stroke-width="2"/><path d="M32 11v5M29.5 13.5h5" stroke="#C93E29" stroke-width="2"/>':'<path d="M19 26c0-14 26-14 26 0c-6-5-20-5-26 0z" fill="'+C[2]+'"/>';
+  var st=role==="doctor"||role==="player"?'<path d="M24 42v8a6 6 0 0 0 12 0v-8" fill="none" stroke="'+k+'" stroke-width="2"/>':"";
+  return '<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="38" width="40" height="28" rx="13" fill="'+C[0]+'" stroke="'+k+'" stroke-width="2"/><path d="M26 38l6 9 6-9z" fill="'+C[1]+'"/>'+st+'<circle cx="32" cy="27" r="13" fill="#F2C9A0" stroke="'+k+'" stroke-width="2"/>'+hat+'<circle cx="27" cy="28" r="1.8" fill="'+k+'"/><circle cx="37" cy="28" r="1.8" fill="'+k+'"/><path d="'+(tired?"M28 35h8":"M27 34q5 5 10 0")+'" fill="none" stroke="'+k+'" stroke-width="2" stroke-linecap="round"/></svg>'}
+function plateSVG(){
+  var segs=[{n:"Sayur",d:120,c:"#1E7A4E",t:"#fff"},{n:"Buah",d:60,c:"#E9B824",t:"#2A2100"},{n:"Lauk",d:60,c:"#C9611A",t:"#fff"},{n:"Pokok",d:120,c:"#2D6FA8",t:"#fff"}],cx=100,cy=100,r=92,th=270,out='<circle cx="100" cy="100" r="98" fill="#fff" stroke="#1C2B24" stroke-width="3"/>';
+  function pt(a,rad){var x=a*Math.PI/180;return [cx+rad*Math.sin(x),cy-rad*Math.cos(x)]}
+  segs.forEach(function(s){var a1=th+s.d,p0=pt(th,r),p1=pt(a1,r),m=pt(th+s.d/2,r*.62);
+    out+='<path d="M100 100 L'+p0[0].toFixed(1)+' '+p0[1].toFixed(1)+' A92 92 0 0 1 '+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+' Z" fill="'+s.c+'" stroke="#fff" stroke-width="3"/><text x="'+m[0].toFixed(1)+'" y="'+(m[1]+4).toFixed(1)+'" text-anchor="middle" font-family="DM Sans,sans-serif" font-weight="700" font-size="13" fill="'+s.t+'">'+s.n+'</text>';th=a1});
+  return '<svg viewBox="0 0 200 200" role="img" aria-label="Isi Piringku">'+out+'</svg>'}
+function sceneBG(a){
+  var W={bangsal:"#DCEBF5",poli:"#DDF0E3",dapur:"#FBE6D0",mitos:"#FAF0C8",all:"#E6EEF3"}[a],F={bangsal:"#B9CFE0",poli:"#BDDCC8",dapur:"#E5C7A3",mitos:"#E5D79B",all:"#C5D3DC"}[a],k='stroke="#1C2B24" stroke-width="2"';
+  var P={
+   bangsal:'<rect x="262" y="16" width="64" height="46" rx="6" fill="#CFE8F5" '+k+'/><path d="M294 16v46M262 39h64" '+k+'/><rect x="30" y="64" width="116" height="28" rx="7" fill="#fff" '+k+'/><rect x="34" y="55" width="30" height="13" rx="6" fill="#F5E8D8" '+k+'/><rect x="176" y="64" width="70" height="28" rx="7" fill="#fff" '+k+'/><path d="M350 24v68M340 24h20" '+k+'/><rect x="344" y="38" width="12" height="16" rx="4" fill="#9ED0F0" '+k+'/>',
+   poli:'<circle cx="320" cy="42" r="26" fill="#fff" '+k+'/><path d="M320 42V16a26 26 0 0 1 26 26z" fill="#E9B824"/><path d="M320 42h26a26 26 0 0 1-26 26z" fill="#C9611A"/><path d="M320 42v26a26 26 0 0 1-26-26z" fill="#2D6FA8"/><path d="M294 42a26 26 0 0 1 26-26v26z" fill="#1E7A4E"/><rect x="30" y="66" width="150" height="26" rx="4" fill="#fff" '+k+'/><rect x="42" y="42" width="38" height="24" rx="3" fill="#C5D3DC" '+k+'/><rect x="200" y="58" width="22" height="34" rx="4" fill="#fff" '+k+'/>',
+   dapur:'<rect x="24" y="64" width="200" height="28" rx="4" fill="#fff" '+k+'/><path d="M40 64v-12h30v12M90 64v-18h34v18" fill="#C5C9C4" '+k+'/><rect x="260" y="48" width="100" height="44" rx="4" fill="#C5C9C4" '+k+'/><circle cx="284" cy="48" r="6" fill="#F2A54A"/><circle cx="332" cy="48" r="6" fill="#F2A54A"/><path d="M150 14v20M170 14v24M190 14v18" '+k+'/>',
+   mitos:'<path d="M40 40l50-26 50 26z" fill="#E9B824" '+k+'/><path d="M40 40h100v8H40z" fill="#fff" '+k+'/><rect x="48" y="64" width="84" height="28" rx="4" fill="#fff" '+k+'/><circle cx="66" cy="60" r="7" fill="#C93E29"/><circle cx="84" cy="60" r="7" fill="#E9B824"/><circle cx="102" cy="60" r="7" fill="#1E7A4E"/><rect x="230" y="22" width="130" height="32" rx="6" fill="#fff" '+k+'/><path d="M244 38h102" '+k+'/>',
+   all:'<rect x="120" y="20" width="160" height="72" fill="#fff" '+k+'/><path d="M200 28v22M189 39h22" stroke="#C93E29" stroke-width="5"/><rect x="134" y="60" width="22" height="32" fill="#CFE8F5" '+k+'/><rect x="244" y="60" width="22" height="32" fill="#CFE8F5" '+k+'/><rect x="186" y="62" width="28" height="30" fill="#2D6FA8" '+k+'/>'}[a];
+  return '<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="120" fill="'+W+'"/><rect y="92" width="400" height="28" fill="'+F+'"/>'+P+'</svg>'}
+
+/* ===== EFEK UI ===== */
+function toast(msg,type,role){
+  var box=$("#toasts"),d=document.createElement("div");d.className="toast "+(type||"");
+  d.innerHTML=(role?'<span class="tav">'+av(role)+'</span>':"")+'<span>'+msg+'</span>';
+  box.appendChild(d);while(box.children.length>3)box.removeChild(box.firstChild);
+  setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d)},3600);
+}
+function popScore(t){
+  var s=$("#score");s.classList.remove("bump");void s.offsetWidth;s.classList.add("bump");
+  if(!SET.motion)return;var p=document.createElement("span");p.className="pop";p.textContent=t;$("#floatbox").appendChild(p);setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},1100);
+}
+function burst(host){
+  if(!SET.motion)return;var b=document.createElement("div");b.className="burst";
+  for(var i=0;i<12;i++){var a=i/12*Math.PI*2,e=document.createElement("i");e.style.setProperty("--x",Math.round(Math.cos(a)*(60+Math.random()*30))+"px");e.style.setProperty("--y",Math.round(Math.sin(a)*(60+Math.random()*30))+"px");e.style.background=["#E9B824","#1E7A4E","#2D6FA8","#C9611A"][i%4];b.appendChild(e)}
+  host.appendChild(b);setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b)},900);
+}
+function flash(){var a=$(".wrap");a.classList.remove("flash");void a.offsetWidth;a.classList.add("flash")}
+function shake(el){el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake")}
+
+/* ===== STATE ===== */
+var S=null,running=false,last=0,lastSave=0,AREA="all",current=null,onClose=null;
+function dailySeed(){var d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()}
+function todayKey(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function newState(mode,seed){return{mode:mode,seed:seed,t:START,tenaga:100,moral:70,kacau:10,dompet:50000,score:0,streak:0,best:0,right:0,wrong:0,missed:0,mitosRight:0,breaks:0,open:[],queue:shuffle(POOL,true),nextSpawn:START,nid:1,paused:false,over:false,log:[]}}
+function fmtTime(t){var h=Math.floor(t/60),m=Math.floor(t%60);return pad(h)+":"+pad(m)}
+function show(id){["#s-menu","#s-game","#s-end","#s-case"].forEach(function(s){$(s).hidden=(s!==id)});window.scrollTo(0,0)}
+function todOf(t){return t<690?["pagi","Pagi","sun"]:t<900?["siang","Siang","sun"]:["sore","Sore","dusk"]}
+function npcOf(o){var a=NPC[o.def.k];return a[o.id%a.length]}
+function renderLog(){$("#log").innerHTML=S.log.map(function(l){return '<li><time>'+fmtTime(l.t)+'</time><span>'+l.h+'</span></li>'}).join("")}
+function logLine(h){S.log.unshift({t:S.t,h:h});S.log.length=Math.min(S.log.length,7);renderLog()}
+
+/* simpan dan lanjutkan shift */
+function saveShift(){
+  if(!S||S.over)return;
+  var d={};["mode","seed","t","tenaga","moral","kacau","dompet","score","streak","best","right","wrong","missed","mitosRight","breaks","nextSpawn","nid","log"].forEach(function(k){d[k]=S[k]});
+  d.rs=RNG?RNG.s:null;d.queue=S.queue.map(function(x){return POOL.indexOf(x)});
+  d.open=S.open.map(function(o){return{id:o.id,i:POOL.indexOf(o.def),deadline:o.deadline,total:o.total,warned:!!o.warned}});
+  save("gizi-jona-save",d);
+}
+function clearSave(){try{localStorage.removeItem("gizi-jona-save")}catch(e){}}
+
+/* ===== GAMEPLAY ===== */
+function spawn(){
+  if(!S.queue.length||S.open.length>=5)return;
+  var def=S.queue.shift(),ty=TYPES[def.k],o={id:S.nid++,def:def,deadline:S.t+ty.dl,total:ty.dl};
+  S.open.push(o);var n=npcOf(o);toast("<b>"+n[0]+":</b> "+n[2],"npc",n[1]);
+  renderTasks();
+}
+function renderAreas(){
+  var names={all:"Semua",bangsal:"Bangsal",poli:"Poli Gizi",dapur:"Dapur Gizi",mitos:"Komunitas"};
+  $("#areas").innerHTML=Object.keys(names).map(function(k){
+    var L=S.open.filter(function(o){return k==="all"||o.def.k===k}),u=L.some(function(o){return (o.deadline-S.t)/o.total<.25});
+    return '<button class="atab'+(AREA===k?" on":"")+'" data-a="'+k+'" role="tab" aria-selected="'+(AREA===k)+'">'+ic(AI[k],18)+'<span>'+names[k]+'</span><b'+(u?' class="hot"':"")+'>'+L.length+'</b></button>'}).join("");
+}
+function renderScene(){
+  var c=CAST[AREA],h='<h2>'+AREAS[AREA]+'</h2>';
+  h+='<div class="pa" style="left:34%">'+av("player",S&&S.tenaga<20)+'</div>';
+  c.forEach(function(r,i){h+='<div class="pa" style="right:'+(8+i*20)+'%">'+av(r)+'</div>'});
+  $("#scene-art").innerHTML=sceneBG(AREA)+h;
+}
+function renderTasks(){
+  var el=$("#tasks"),L=S.open.filter(function(o){return AREA==="all"||o.def.k===AREA});
+  $("#tcount").textContent=S.open.length+" antre";renderAreas();
+  if(!L.length){el.innerHTML='<p class="empty">'+(S.open.length?"Tidak ada tugas di area ini. Cek area lain.":"Belum ada tugas. Ambil napas dulu, pasien berikutnya sebentar lagi datang.")+'</p>';return}
+  el.innerHTML=L.map(function(o){var ty=TYPES[o.def.k];
+    return '<button class="task t-'+o.def.k+'" data-id="'+o.id+'"><span class="ti">'+ic(AI[o.def.k],22)+'</span><span class="tb"><span class="tags"><em>'+ty.area+'</em><em class="lv'+ty.lv+'">'+LV[ty.lv]+'</em><em class="st"></em></span><strong>'+o.def.h+'</strong><span class="tm"><span class="dl">'+ic("clock",14)+'<i></i></span><span>'+ic("coin",14)+rp(ty.pay)+'</span></span><span class="bar"><i></i></span></span></button>'}).join("");
+  updateBars();
+}
+function updateBars(){
+  S.open.forEach(function(o){
+    var f=clamp((o.deadline-S.t)/o.total,0,1);
+    if(f<.25&&!o.warned){o.warned=true;toast("Hampir habis: <b>"+o.def.h+"</b>","warn");renderAreas()}
+    var b=document.querySelector('.task[data-id="'+o.id+'"]');if(!b)return;
+    b.querySelector(".bar i").style.width=(f*100).toFixed(1)+"%";b.classList.toggle("urgent",f<.25);
+    b.querySelector(".dl i").textContent=Math.max(0,Math.ceil(o.deadline-S.t))+" mnt";
+    b.querySelector(".st").textContent=f<.25?"Mendesak":f<.6?"Menunggu":"Baru";
+  });
+}
+function hud(){
+  $("#clock").textContent=fmtTime(S.t);
+  $("#dayfill").style.width=(((S.t-START)/(END-START))*100).toFixed(1)+"%";
+  $("#score").textContent=fmt(S.score);
+  $("#v-tenaga").textContent=Math.round(S.tenaga);$("#f-tenaga").style.width=S.tenaga+"%";
+  $("#v-moral").textContent=Math.round(S.moral);$("#f-moral").style.width=S.moral+"%";
+  $("#v-kacau").textContent=Math.round(S.kacau);$("#f-kacau").style.width=S.kacau+"%";
+  $("#v-dompet").textContent=rp(S.dompet);
+  var tired=S.tenaga<20;
+  $("#st-tenaga").classList.toggle("warn",tired);$("#n-tenaga").textContent=tired?"Lelah: poin dan upah separuh":"";
+  if(tired&&!S.tw){S.tw=true;toast("Tenaga menipis. Ambil jeda ngopi.","warn")}if(!tired)S.tw=false;
+  var lm=S.moral<25;$("#st-moral").classList.toggle("warn",lm);$("#n-moral").textContent=lm?"Pasien mulai komplain":"";
+  var hk=S.kacau>75;$("#st-kacau").classList.toggle("warn",hk);$("#n-kacau").textContent=hk?"Bangsal nyaris kacau":"";
+  $("#b-break").disabled=S.dompet<5000||S.paused;
+  var td=todOf(S.t);if(S.tod!==td[0]){S.tod=td[0];document.documentElement.dataset.tod=td[0];$("#tod-name").textContent=td[1];$("#tod-ic").innerHTML=ic(td[2],24)}
+  if(S.ti!==tired){S.ti=tired;$("#av-player").innerHTML=av("player",tired);renderScene()}
+  updateBars();
+}
+function advance(m){
+  if(S.over)return;
+  S.t=Math.min(END,S.t+m);
+  for(var i=S.open.length-1;i>=0;i--){
+    var o=S.open[i];
+    if(S.t>=o.deadline){
+      S.open.splice(i,1);S.missed++;S.streak=0;
+      S.moral=clamp(S.moral-6,0,100);S.kacau=clamp(S.kacau+10,0,100);
+      logLine('<span class="no">Terlewat:</span> '+o.def.h+'.');toast("Terlewat: <b>"+o.def.h+"</b>. Moral turun, kacau naik.","bad");flash();
+      renderTasks();
+    }
+  }
+  while(S.t>=S.nextSpawn&&S.t<END){spawn();S.nextSpawn+=rand(18,30)}
+  checkEnd();
+}
+function checkEnd(){
+  if(S.over)return;
+  if(S.moral<=0)return finish("moral");
+  if(S.kacau>=100)return finish("kacau");
+  if(S.t>=END)return finish("selesai");
+}
+function loop(now){
+  if(!running)return;
+  var dt=Math.min((now-last)/1000,.25);last=now;
+  if(!S.paused&&!S.over)advance(dt*SET.speed);
+  if(!S.over){hud();if(now-lastSave>3000){lastSave=now;if(!S.paused)saveShift()}}
+  requestAnimationFrame(loop);
+}
+function enterGame(){
+  show("#s-game");AREA="all";S.tod=null;S.ti=null;
+  $("#pname-h").textContent=SET.name||"Dietisien";$("#rank-h").textContent=rankOf(CAR.best)+(S.mode==="daily"?" · Daily Shift":"");
+  renderLog();renderScene();renderTasks();hud();
+  running=true;last=performance.now();requestAnimationFrame(loop);
+}
+function startGame(mode){
+  mode=mode||"normal";var seed=mode==="daily"?dailySeed():0;
+  RNG=mode==="daily"?mk(seed):null;
+  S=newState(mode,seed);S.log=[{t:START,h:"Shift dimulai."}];
+  spawn();spawn();S.nextSpawn=START+rand(18,30);
+  enterGame();saveShift();
+}
+function resume(){
+  var d=load("gizi-jona-save",null);if(!d)return;
+  RNG=d.mode==="daily"?mk(d.seed):null;
+  S=newState(d.mode,d.seed);if(RNG)RNG.s=d.rs>>>0;
+  ["t","tenaga","moral","kacau","dompet","score","streak","best","right","wrong","missed","mitosRight","breaks","nextSpawn","nid"].forEach(function(k){S[k]=d[k]});
+  S.queue=d.queue.map(function(i){return POOL[i]});S.log=d.log||[];
+  S.open=d.open.map(function(o){return{id:o.id,def:POOL[o.i],deadline:o.deadline,total:o.total,warned:o.warned}});
+  S.paused=true;enterGame();
+  modal('<h2>Shift dilanjutkan</h2><p>Kamu kembali di jam '+fmtTime(S.t)+' dengan skor '+fmt(S.score)+'. Jam menunggu sampai kamu siap.</p>',[{t:"Lanjutkan",primary:true,fn:closeOverlay}],function(){S.paused=false;last=performance.now()});
+}
+function toMenu(){running=false;if(S&&!S.over)saveShift();document.documentElement.dataset.tod="pagi";show("#s-menu");refreshMenu()}
+
+/* ===== TUGAS ===== */
+function openTask(id){
+  var o=S.open.filter(function(x){return x.id==id})[0];if(!o)return;
+  current=o;S.paused=true;
+  var ty=TYPES[o.def.k],n=npcOf(o),opts=shuffle(o.def.a.map(function(t,i){return{t:t,ok:i===0}})),body=$("#sheet-body");
+  body.innerHTML='<div class="npc"><span class="npc-av">'+av(n[1])+'</span><div class="bubble"><b>'+n[0]+'</b><span>'+n[2]+'</span></div></div><div class="dtags"><span class="tag t-'+o.def.k+'">'+ty.area+'</span><span class="tag lv'+ty.lv+'" style="color:var(--ink)">'+LV[ty.lv]+'</span></div><h2>'+o.def.h+'</h2><p class="q">'+o.def.q+'</p><div class="opts" id="opts"></div><div id="fb"></div>';
+  var wrap=$("#opts");
+  opts.forEach(function(op){var b=document.createElement("button");b.className="opt";b.textContent=op.t;b.dataset.ok=op.ok?"1":"0";b.addEventListener("click",function(){answer(b,op.ok)});wrap.appendChild(b)});
+  $("#sheet").hidden=false;var first=wrap.querySelector(".opt");if(first)first.focus();
+}
+function answer(btn,ok){
+  var o=current,ty=TYPES[o.def.k],tired=S.tenaga<20,chips=[];
+  [].forEach.call(document.querySelectorAll("#opts .opt"),function(b){b.disabled=true;if(b.dataset.ok==="1")b.classList.add("right")});
+  if(!ok)btn.classList.add("wrong");
+  var costE=o.def.k==="mitos"?4:8;
+  S.tenaga=clamp(S.tenaga-costE,0,100);chips.push(['down','Tenaga -'+costE]);
+  if(ok){
+    var pts=100+Math.min(S.streak,5)*20,pay=ty.pay,mor=8;
+    if(tired){pts=Math.round(pts/2);pay=Math.round(pay/2);mor=4}
+    S.streak++;S.best=Math.max(S.best,S.streak);S.right++;if(o.def.k==="mitos")S.mitosRight++;
+    S.score+=pts;S.dompet+=pay;S.moral=clamp(S.moral+mor,0,100);S.kacau=clamp(S.kacau-3,0,100);
+    chips.push(['up','Skor +'+pts],['up',rp(pay)],['up','Moral +'+mor],['up','Kacau -3']);
+    logLine('<span class="ok">Tepat:</span> '+o.def.h+'.');
+    popScore("+"+pts);burst($("#sheet-body"));
+    if(S.right===1)toast("Pencapaian: tugas pertama beres!","ach");
+    if(S.streak===3)toast("Pencapaian: beruntun 3 tugas!","ach");
+    if(S.streak===5)toast("Pencapaian: beruntun 5! Lencana diberikan di akhir shift.","ach");
+  }else{
+    S.streak=0;S.wrong++;S.moral=clamp(S.moral-10,0,100);S.kacau=clamp(S.kacau+12,0,100);
+    chips.push(['down','Moral -10'],['down','Kacau +12']);
+    logLine('<span class="no">Kurang tepat:</span> '+o.def.h+'.');
+    shake($("#sheet-body"));flash();
+  }
+  S.open=S.open.filter(function(x){return x.id!==o.id});
+  $("#fb").innerHTML='<div class="fb '+(ok?"ok":"no")+'"><h3>'+(ok?"Tepat!":"Kurang tepat")+'</h3>'+(ok?"":'<p><b>Jawaban yang lebih tepat:</b> '+o.def.a[0]+'</p>')+'<p>'+o.def.w+'</p><div class="chips">'+chips.map(function(c){return '<span class="chip '+c[0]+'">'+c[1]+'</span>'}).join("")+'</div><button class="btn primary" id="b-next">Lanjut</button></div>';
+  hud();saveShift();$("#b-next").focus();
+  $("#b-next").addEventListener("click",function(){
+    $("#sheet").hidden=true;current=null;S.paused=false;last=performance.now();
+    renderTasks();hud();checkEnd();
+  });
+}
+
+/* ===== AKHIR SHIFT ===== */
+function finish(reason){
+  S.over=true;running=false;S.paused=true;$("#sheet").hidden=true;clearSave();
+  var done=reason==="selesai",earned=load("gizi-jona-badges",[]),fresh=[],oldRank=rankIdx(CAR.best);
+  if(done){BADGES.forEach(function(b){if(b.ok(S)&&earned.indexOf(b.id)<0){earned.push(b.id);fresh.push(b)}});save("gizi-jona-badges",earned)}
+  CAR.shifts++;CAR.best=Math.max(CAR.best,S.score);CAR.total+=S.score;CAR.right+=S.right;CAR.wrong+=S.wrong;CAR.missed+=S.missed;save("gizi-jona-career",CAR);
+  if(S.mode==="daily"){var dd=load("gizi-jona-daily",null);dd=dd&&dd.date===todayKey()?dd:{date:todayKey(),best:0,plays:0};dd.best=Math.max(dd.best,S.score);dd.plays++;save("gizi-jona-daily",dd)}
+  var promo=rankIdx(CAR.best)>oldRank;
+  var title=done?"Shift selesai":"Shift dihentikan";
+  var why={selesai:"Jam menunjukkan 17:00 dan kamu pulang dengan kepala tegak.",moral:"Pasien dan keluarga terlalu kecewa, jadi kepala ruangan menghentikan shift lebih awal.",kacau:"Bangsal dan dapur terlalu kacau sehingga shift harus dihentikan lebih awal."}[reason];
+  var acc=(S.right+S.wrong)?Math.round(S.right/(S.right+S.wrong)*100):0,el=$("#s-end");
+  el.innerHTML='<div class="panel"><div class="endhead"><span class="npc-av">'+av("player",!done)+'</span><div><div class="eyebrow">'+(done?"Rapor shift":"Laporan insiden")+(S.mode==="daily"?" · Daily Shift":"")+'</div><h1>'+title+'</h1></div></div><p>'+why+'</p>'
+   +'<div class="eyebrow" style="margin-top:16px">'+rankOf(S.score)+'</div><div class="big">'+fmt(S.score)+'</div>'
+   +(promo?'<p class="ok">Naik pangkat: '+rankOf(CAR.best)+'!</p>':"")
+   +'<div class="grid2"><div><b>'+S.right+' / '+(S.right+S.wrong)+'</b><span>Jawaban benar ('+acc+'%)</span></div><div><b>'+S.missed+'</b><span>Tugas terlewat</span></div><div><b>'+rp(S.dompet)+'</b><span>Dompet akhir</span></div><div><b>'+S.best+'</b><span>Beruntun terbaik</span></div></div>'
+   +(fresh.length?'<div class="eyebrow">Lencana baru</div><div class="newb">'+fresh.map(function(b){return '<span>'+b.n+'</span>'}).join("")+'</div>':"")
+   +'<div class="save"><input id="pname" type="text" maxlength="16" placeholder="Nama untuk papan skor" aria-label="Nama untuk papan skor"><button class="btn" id="b-save">Simpan skor</button></div>'
+   +'<div class="row"><button class="btn primary" id="b-again">Main lagi</button><button class="btn" id="b-board2">Papan skor</button><button class="btn" id="b-menu2">Ke menu</button></div></div>';
+  show("#s-end");document.documentElement.dataset.tod="pagi";
+  $("#pname").value=SET.name||load("gizi-jona-name","");
+  var mode=S.mode,score=S.score;
+  $("#b-save").addEventListener("click",function(){
+    var n=($("#pname").value||"Anonim").trim()||"Anonim";save("gizi-jona-name",n);
+    var bd=load("gizi-jona-board",[]);bd.push({n:n,s:score,d:new Date().toISOString().slice(0,10),m:mode,sp:SET.speed});
+    bd.sort(function(a,b){return b.s-a.s});save("gizi-jona-board",bd.slice(0,10));this.disabled=true;this.textContent="Tersimpan";
+  });
+  $("#b-again").addEventListener("click",function(){startGame(mode)});
+  $("#b-board2").addEventListener("click",showBoard);
+  $("#b-menu2").addEventListener("click",function(){show("#s-menu");refreshMenu()});
+}
+
+/* ===== MODAL DAN LAYAR MENU ===== */
+function modal(html,btns,cb){
+  var b=$("#ov-body");b.innerHTML=html+'<div class="row">'+btns.map(function(x,i){return '<button class="btn'+(x.primary?' primary':'')+'" data-i="'+i+'">'+x.t+'</button>'}).join("")+'</div>';
+  [].forEach.call(b.querySelectorAll("button[data-i]"),function(el){el.addEventListener("click",function(){btns[+el.dataset.i].fn()})});
+  onClose=cb||null;$("#overlay").hidden=false;var f=b.querySelector("button[data-i]");if(f)f.focus();
+}
+function closeOverlay(){$("#overlay").hidden=true;var cb=onClose;onClose=null;if(cb)cb()}
+function info(html){modal(html,[{t:"Tutup",primary:true,fn:closeOverlay}])}
+function showHelp(){info('<h2>Cara main</h2><ol><li>Satu shift berjalan dari 08:00 sampai 17:00, kira-kira empat setengah menit pada kecepatan normal.</li><li>Tugas datang dari Bangsal, Poli Gizi, Dapur Gizi, dan Komunitas. Pilih area di atas, lalu ketuk satu tugas. Waktu berhenti selama kamu memilih.</li><li>Jawaban tepat menambah skor, dompet, dan moral. Jawaban keliru dan tugas yang terlewat menambah kekacauan.</li><li>Tiap tugas menguras tenaga. Di bawah 20, poin dan upah tinggal separuh, jadi ambil jeda ngopi.</li><li>Shift berhenti lebih awal kalau moral habis atau kekacauan penuh.</li><li>Daily Shift memakai urutan tugas yang sama untuk semua pemain pada hari yang sama. Shift yang belum selesai bisa dilanjutkan lewat Continue Game.</li></ol><p style="color:var(--muted)">Materi dalam game ini untuk latihan dan hiburan, bukan pengganti saran tenaga kesehatan.</p>')}
+function showBoard(){
+  var bd=load("gizi-jona-board",[]);
+  var rows=bd.length?bd.map(function(r,i){return '<tr><td>'+(i+1)+'</td><td>'+String(r.n).replace(/[<>&]/g,"")+'</td><td>'+(r.m==="daily"?"Harian":"Biasa")+(r.sp?" x"+r.sp:"")+'</td><td>'+r.d+'</td><td>'+fmt(r.s)+'</td></tr>'}).join(""):'<tr><td colspan="5">Belum ada skor. Selesaikan satu shift dan simpan namamu.</td></tr>';
+  info('<h2>Leaderboard</h2><table class="board"><thead><tr><th>#</th><th>Nama</th><th>Mode</th><th>Tanggal</th><th>Skor</th></tr></thead><tbody>'+rows+'</tbody></table><p style="color:var(--muted);font-size:13px">Skor tersimpan di perangkat ini saja.</p>');
+}
+function showBadges(){
+  var earned=load("gizi-jona-badges",[]);
+  info('<h2>Achievement</h2><p class="muted">'+earned.length+' dari '+BADGES.length+' lencana didapat.</p><div class="badge-grid">'+BADGES.map(function(b){var on=earned.indexOf(b.id)>=0;return '<div class="bd '+(on?"on":"off")+'"><div class="ic2">'+b.ic+'</div><div><b>'+b.n+'</b><span>'+b.d+'</span></div></div>'}).join("")+'</div>');
+}
+function showCareer(){
+  var i=rankIdx(CAR.best),nx=RANKS[i+1],pr=nx?clamp(CAR.best/nx[1],0,1):1,tot=CAR.right+CAR.wrong;
+  info('<h2>Career Progress</h2><div class="eyebrow"><span>Pangkat tertinggi</span><span>'+(nx?"Berikutnya: "+nx[0]+" ("+fmt(nx[1])+")":"Pangkat tertinggi")+'</span></div><h3 style="margin:4px 0 8px">'+RANKS[i][0]+'</h3><div class="track"><i style="width:'+(pr*100)+'%"></i></div><div class="cgrid"><div><b>'+CAR.shifts+'</b><span>Shift dimainkan</span></div><div><b>'+fmt(CAR.best)+'</b><span>Skor terbaik</span></div><div><b>'+(tot?Math.round(CAR.right/tot*100):0)+'%</b><span>Akurasi ('+CAR.right+' dari '+tot+')</span></div><div><b>'+CAR.missed+'</b><span>Tugas terlewat</span></div></div>');
+}
+function showSettings(){
+  modal('<h2>Setting</h2><label>Nama pemain<input type="text" id="set-name" maxlength="16" value="'+String(SET.name).replace(/[<>&"]/g,"")+'"></label><label>Kecepatan shift<select id="set-speed"><option value="1">Santai (sekitar 9 menit)</option><option value="2">Normal (sekitar 4,5 menit)</option><option value="3">Cepat (sekitar 3 menit)</option></select></label><label class="chk"><input type="checkbox" id="set-motion"> Animasi dan efek visual</label><button class="btn" id="set-reset" style="margin-top:6px">Hapus semua data</button>',[{t:"Tutup",primary:true,fn:closeOverlay}]);
+  $("#set-speed").value=String(SET.speed);$("#set-motion").checked=SET.motion;
+  $("#set-name").addEventListener("change",function(){SET.name=this.value.trim();save("gizi-jona-set",SET)});
+  $("#set-speed").addEventListener("change",function(){SET.speed=+this.value;save("gizi-jona-set",SET)});
+  $("#set-motion").addEventListener("change",function(){SET.motion=this.checked;save("gizi-jona-set",SET);applySet()});
+  var armed=false;$("#set-reset").addEventListener("click",function(){
+    if(!armed){armed=true;this.textContent="Yakin? Ketuk lagi untuk menghapus";return}
+    ["set","career","save","daily","badges","board","name","cases","casesave"].forEach(function(k){try{localStorage.removeItem("gizi-jona-"+k)}catch(e){}});
+    SET={name:"",motion:true,speed:2};CAR={shifts:0,best:0,total:0,right:0,wrong:0,missed:0};S=null;applySet();closeOverlay();refreshMenu();toast("Semua data dihapus.");
+  });
+}
+/* Registri ruangan: Phase 2 cukup mengubah locked:false dan mengisi fn. */
+var ROOMS=[
+  {id:"emergency",n:"Emergency Room",d:"Terkunci, hadir di Tahap 2",ic:"bed",locked:true},
+  {id:"lab",n:"Nutrition Lab",d:"Terkunci, hadir di Tahap 2",ic:"pot",locked:true},
+  {id:"food",n:"Foodservice Manager",d:"Terkunci, hadir di Tahap 4",ic:"all",locked:true},
+  {id:"boss",n:"Boss Case",d:"Terkunci, hadir di Tahap 4",ic:"ach",locked:true},
+  {id:"career",n:"Career Progress",d:"Pangkat dan statistik",ic:"career",fn:showCareer},
+  {id:"ach",n:"Achievement",d:"Lencana",ic:"ach",fn:showBadges},
+  {id:"board",n:"Leaderboard",d:"10 skor terbaik",ic:"board",fn:showBoard},
+  {id:"set",n:"Setting",d:"Nama, kecepatan, animasi",ic:"set",fn:showSettings},
+  {id:"help",n:"Cara main",d:"Aturan singkat",ic:"help",fn:showHelp}
+];
+function refreshMenu(){renderRecent();
+  var sv=load("gizi-jona-save",null),dd=load("gizi-jona-daily",null);
+  $("#m-continue").disabled=!sv;$("#cont-note").textContent=sv?("Jam "+fmtTime(sv.t)+", skor "+fmt(sv.score)+(sv.mode==="daily"?", Daily Shift":"")):"Belum ada shift tersimpan";
+  $("#daily-note").textContent=dd&&dd.date===todayKey()?"Skor terbaik hari ini: "+fmt(dd.best):"Urutan tugas sama untuk semua pemain hari ini";
+  $("#hero-art").innerHTML=sceneBG("all")+'<span class="rk">'+rankOf(CAR.best)+'</span><div class="hero-av">'+av("player")+'</div><div class="hero-plate">'+plateSVG()+'</div>';
+  $("#hero-art").firstChild.setAttribute("class","bg");
+  $("#rooms").innerHTML=ROOMS.map(function(r){return r.locked?'<div class="room locked" aria-disabled="true" role="note">'+ic("lock",24)+'<b>'+r.n+'</b><small>'+r.d+'</small></div>':'<button class="room" data-room="'+r.id+'">'+ic(r.ic,24)+'<b>'+r.n+'</b><small>'+r.d+'</small></button>'}).join("");
+}
+function confirmNew(mode){
+  if(!load("gizi-jona-save",null))return startGame(mode);
+  modal('<h2>Mulai shift baru?</h2><p>Shift yang tersimpan akan diganti.</p>',[{t:"Mulai shift baru",primary:true,fn:function(){closeOverlay();startGame(mode)}},{t:"Batal",fn:closeOverlay}]);
+}
+
+/* ===== PATIENT CASE ROOM (Phase 1) =====
+   Basis data kasus (CASEDB) dipisah dari mesin kasus agar kasus baru cukup ditambahkan sebagai objek.
+   Tipe tahap: mc, num, match, order, short. Opsi mc boleh membawa: s (skor 0-1), fb, mis, l, e [kondisi, kepercayaan, menit], set [flag].
+   Tahap boleh punya "if": "flag" atau "!flag" agar muncul hanya pada cabang tertentu. */
+var PHASES=["Skrining gizi","Asesmen gizi","Diagnosis gizi","Intervensi gizi","Monitoring dan evaluasi"];
+var DIMS={acc:["Accuracy",.30],rea:["Clinical reasoning",.25],pri:["Prioritization",.15],saf:["Clinical safety",.20],eff:["Efficiency",.10]};
+var VERIF="Materi kasus disusun dari pedoman umum yang dicantumkan dan belum ditinjau oleh dosen atau pembimbing. Konsekuensi klinis dalam simulasi (misalnya hipoglikemia atau hiperkalemia) adalah asumsi simulasi. Verifikasi ke pedoman terbaru sebelum dipakai belajar.";
+var CASEDB=[
+{id:"dm2-hendra",cat:"Gizi Klinik · Diabetes melitus",lv:2,est:"±15 menit",budget:90,
+ title:"Gula darah sulit turun pada pegawai bank",
+ ref:["PERKENI. Pedoman Pengelolaan dan Pencegahan Diabetes Melitus Tipe 2 di Indonesia, 2021.","Evert AB, et al. Nutrition Therapy for Adults With Diabetes or Prediabetes: A Consensus Report. Diabetes Care 2019;42(5):731-754.","American Diabetes Association. Standards of Care in Diabetes (bagian hipoglikemia).","WHO. Klasifikasi indeks massa tubuh dewasa.","Academy of Nutrition and Dietetics. Nutrition Care Process Terminology (IDNT)."],
+ pt:{nama:"Tn. Hendra",usia:"52 tahun, laki-laki, pegawai bank",dx:"Diabetes melitus tipe 2 sejak 3 tahun",kel:"Sering haus, sering buang air kecil malam hari, mudah lelah. Gula darah sulit turun.",rw:"Obat: metformin 2 x 500 mg dan glimepirid 2 mg pagi hari. Hipertensi ringan tanpa obat. Ibu menderita DM.",an:"BB 78 kg, TB 165 cm, lingkar pinggang 100 cm.",fi:"TD 138/86 mmHg. Tidak ada luka kaki. Tidak ada keluhan penglihatan.",mk:"Recall 24 jam: nasi putih 3 piring, gorengan 3 kali, teh manis 2 gelas, kopi kental manis 1 gelas, roti manis 1, buah 1 kali. Estimasi energi ±2.600 kkal (karbohidrat ±60%, lemak ±28%, protein ±12%). Kebutuhan energi sekitar 2.000 kkal. Aktivitas fisik ringan.",lab:"GDP 168 mg/dL, GD2PP 245 mg/dL."},
+ req:[{id:"hba1c",l:"HbA1c",c:10,n:1,r:"HbA1c 8,6%."},{id:"lipid",l:"Profil lipid",c:15,n:1,r:"Kolesterol total 232, LDL 148, HDL 38, trigliserida 210 mg/dL."},{id:"ginjal",l:"Ureum dan kreatinin",c:10,n:1,r:"Ureum 28 mg/dL, kreatinin 0,9 mg/dL. Fungsi ginjal baik."},{id:"ct",l:"CT scan abdomen",c:45,n:0,r:"Tidak ada kelainan. Pemeriksaan ini tidak diperlukan untuk keputusan gizi."}],
+ st:[
+ {id:"s1",ph:"Skrining gizi",tt:"Hitung IMT",ty:"num",dims:["acc"],tx:"Pasien baru datang ke poli gizi. Hitung IMT dari data antropometri, lalu tentukan kategorinya menurut WHO.",ans:28.65,tol:.01,un:"kg/m²",fm:"IMT = BB (kg) / TB (m)²",steps:"78 / (1,65 × 1,65) = 78 / 2,7225 = 28,65 kg/m². Menurut WHO, IMT 25,0-29,9 termasuk berat badan lebih (pra-obes).",cm:[{v:47.27,msg:"Kamu membagi BB dengan TB tanpa mengkuadratkannya."}],lrn:"Perhitungan IMT dan klasifikasi WHO"},
+ {id:"s2",ph:"Asesmen gizi",tt:"Kelompokkan data asesmen",ty:"match",dims:["rea"],needs:["hba1c","lipid","ginjal"],tx:"Minta pemeriksaan yang kamu perlukan di panel kiri (hasil baru muncul bila kamu memintanya). Lalu cocokkan data dengan domain asesmen gizi.",pairs:[["Lingkar pinggang 100 cm","Antropometri"],["HbA1c","Biokimia"],["TD 138/86 mmHg","Klinis atau fisik"],["Recall: nasi 3 piring, teh manis 2 gelas","Riwayat makan"]],ch:["Antropometri","Biokimia","Klinis atau fisik","Riwayat makan"],why:"Asesmen gizi mengelompokkan data ke dalam antropometri, biokimia, klinis atau fisik, dan riwayat makan (ABCD) ditambah riwayat klien. HbA1c menunjukkan kontrol glikemik 2-3 bulan, jadi perlu diminta sebelum menetapkan masalah.",lrn:"Domain asesmen gizi (ABCD) dan data yang perlu diminta"},
+ {id:"s3",ph:"Diagnosis gizi",tt:"Pilih pernyataan PES",ty:"mc",dims:["acc","rea"],tx:"Susun diagnosis gizi (bukan diagnosis medis) dari data yang ada. Pernyataan PES mana yang paling tepat?",
+  why:"PES terdiri dari Problem (masalah gizi), Etiology (penyebab terkait makan), dan Signs/Symptoms (data terukur). Diagnosis gizi berbeda dari diagnosis medis.",lrn:"Menyusun pernyataan PES dan membedakannya dari diagnosis medis",
+  opts:[{t:"Asupan energi berlebih (NI-1.3) berkaitan dengan pola makan tinggi karbohidrat sederhana dan porsi besar, ditandai dengan estimasi asupan ±2.600 kkal (kebutuhan ±2.000 kkal), IMT 28,7, dan HbA1c 8,6%.",s:1,fb:"Problem gizi, etiologi terkait makan, dan tanda terukur semuanya ada dan saling menyambung.",e:[2,2,8]},
+  {t:"Diabetes melitus tipe 2 ditandai dengan HbA1c 8,6%.",s:.2,fb:"Ini diagnosis medis. Diagnosis gizi harus menyebut masalah gizi yang bisa diintervensi dietisien.",mis:"Mencampur diagnosis gizi dengan diagnosis medis",e:[-1,-2,8]},
+  {t:"Kurang pengetahuan terkait makan dan zat gizi (NB-1.1) berkaitan dengan pasien belum pernah belajar diet DM, ditandai dengan GDP 168 mg/dL.",s:.4,fb:"Belum ada data tentang pengetahuan pasien, dan GDP bukan tanda yang spesifik untuk masalah ini. Gali dulu lewat wawancara.",mis:"Menetapkan etiologi tanpa data pendukung",e:[0,-2,8]},
+  {t:"Malnutrisi (NI-5.2) berkaitan dengan asupan kurang, ditandai dengan lingkar pinggang 100 cm.",s:0,fb:"Data menunjukkan kelebihan asupan, bukan kekurangan.",mis:"Menafsirkan arah masalah gizi secara terbalik",e:[-2,-4,8]}]},
+ {id:"s4",ph:"Intervensi gizi",tt:"Tentukan preskripsi diet",ty:"mc",dims:["acc","saf"],tx:"Pasien memakai glimepirid (sulfonilurea). Tentukan preskripsi diet awal yang paling tepat.",
+  why:"Penurunan berat badan 5-7% memperbaiki kontrol glikemik. Defisit energi sedang dengan karbohidrat 45-65% energi dan jadwal makan teratur aman bagi pengguna sulfonilurea. Restriksi berat berisiko hipoglikemia.",lrn:"Preskripsi diet DM dan risiko hipoglikemia pada pengguna sulfonilurea",
+  opts:[{t:"Energi ±1.500 kkal/hari (defisit bertahap), karbohidrat 45-55% energi dibagi merata pada 3 makan utama dan 2-3 selingan, gula tambahan dibatasi, serat 20-35 g/hari.",s:1,e:[8,6,10],set:["ok"],fb:"Defisit sedang dan jadwal makan teratur: efektif untuk berat badan dan aman terhadap hipoglikemia."},
+  {t:"Energi 1.000 kkal/hari dan karbohidrat kurang dari 100 g/hari agar gula darah turun cepat.",s:.1,e:[-15,-5,10],set:["agresif"],fb:"Terlalu ketat. Pada pengguna sulfonilurea, asupan yang tiba-tiba turun menaikkan risiko hipoglikemia.",mis:"Restriksi energi dan karbohidrat berlebihan pada pengguna sulfonilurea"},
+  {t:"Tetap 2.600 kkal, cukup ganti gula pasir dengan pemanis dan hindari gorengan.",s:.3,e:[-3,-3,10],set:["bebas"],fb:"Energi berlebih tidak dikoreksi, sehingga berat badan dan HbA1c sulit membaik.",mis:"Hanya mengganti jenis gula tanpa mengoreksi total energi"}]},
+ {id:"s4b",if:"agresif",ph:"Kejadian tak terduga",tt:"Pasien gemetar dan berkeringat",ty:"mc",dims:["saf","pri"],tx:"Tiga hari kemudian pasien datang kontrol: gemetar, berkeringat dingin, pusing, tetapi sadar. GDS 62 mg/dL. (Konsekuensi simulasi dari keputusan sebelumnya.) Apa tindakan paling tepat sekarang?",
+  why:"Hipoglikemia pada pasien sadar ditangani dengan 15-20 g karbohidrat sederhana oral, ukur ulang setelah 15 menit, dan dokter diberi tahu.",lrn:"Penanganan hipoglikemia pada pasien sadar (aturan 15)",
+  opts:[{t:"Beri ±3-4 sendok teh gula atau tablet glukosa (15-20 g), ukur ulang GD setelah 15 menit, dan laporkan ke dokter.",s:1,e:[12,6,6],fb:"Penanganan segera, terukur, dan melibatkan tim medis."},
+  {t:"Minta pasien beristirahat dan menunggu sampai makan siang.",s:0,e:[-12,-10,6],fb:"Hipoglikemia harus ditangani segera.",mis:"Menunda penanganan hipoglikemia"},
+  {t:"Beri nasi porsi besar dengan gorengan agar kenyang.",s:.3,e:[3,0,6],fb:"Makanan berlemak memperlambat penyerapan. Mulai dengan karbohidrat sederhana, lalu makanan utama.",mis:"Memilih makanan kompleks untuk koreksi hipoglikemia"}]},
+ {id:"s5",ph:"Intervensi gizi",tt:"Edukasi aturan makan DM",ty:"short",dims:["acc"],tx:"Pasien bertanya: “Bagaimana aturan makan DM yang mudah saya ingat?” Tuliskan tiga prinsip pengaturan makan yang kamu ajarkan.",kw:[["jumlah","porsi"],["jenis","pilihan"],["jadwal","waktu","jam"]],need:3,best:"3J: Jumlah (energi dan porsi sesuai kebutuhan), Jenis (karbohidrat kompleks berserat, batasi gula tambahan dan lemak jenuh), Jadwal (3 makan utama dan selingan teratur, tidak melewatkan makan terutama bila memakai obat penurun gula).",lrn:"Prinsip 3J pada diet DM"},
+ {id:"s6",ph:"Monitoring dan evaluasi",tt:"Cocokkan target pemantauan",ty:"match",dims:["acc","rea"],tx:"Cocokkan parameter dengan target yang umum dipakai pada DM tipe 2 dewasa.",pairs:[["HbA1c","< 7%"],["Glukosa darah puasa","80-130 mg/dL"],["Tekanan darah","< 140/90 mmHg"],["LDL kolesterol","< 100 mg/dL"]],ch:["< 7%","80-130 mg/dL","< 140/90 mmHg","< 100 mg/dL"],why:"Target ini mengikuti PERKENI 2021 untuk DM tipe 2 dewasa tanpa penyulit berat. Target dapat diindividualisasi (misalnya LDL < 70 mg/dL bila ada penyakit kardiovaskular).",lrn:"Target kendali DM tipe 2 (PERKENI 2021)"}
+ ]},
+{id:"hd-sari",cat:"Gizi Klinik · Ginjal",lv:3,est:"±20 menit",budget:100,
+ title:"Lemas dan makin kurus pada pasien hemodialisis",
+ ref:["Ikizler TA, et al. KDOQI Clinical Practice Guideline for Nutrition in CKD: 2020 Update. Am J Kidney Dis 2020;76(3 Suppl 1):S1-S107.","Fouque D, et al. A proposed nomenclature and diagnostic criteria for protein-energy wasting in acute and chronic kidney disease. Kidney Int 2008;73:391-398.","Academy of Nutrition and Dietetics. Nutrition Care Process Terminology (IDNT)."],
+ pt:{nama:"Ny. Sari",usia:"58 tahun, perempuan",dx:"Penyakit ginjal kronik stadium 5, hemodialisis 2 kali per minggu sejak 8 bulan",kel:"Lemas, nafsu makan turun, kaki bengkak di antara jadwal HD.",rw:"Hipertensi 10 tahun. Produksi urine ±400 mL/hari.",an:"TB 155 cm. BB kering 52 kg. BB 3 bulan lalu 55 kg. Kenaikan BB antar HD 3,5 kg.",fi:"TD 150/90 mmHg. Edema tungkai ringan. Konjungtiva pucat.",mk:"Recall: makan 2 kali sehari porsi kecil, ±1.200 kkal dan protein ±35 g. Sering makan pisang dan jeruk, banyak minum teh dan kopi, suka ikan asin dan kecap.",lab:"Albumin 3,1 g/dL, Hb 9,1 g/dL, kalium 5,9 mEq/L."},
+ req:[{id:"fos",l:"Fosfor dan kalsium",c:15,n:1,r:"Fosfor 6,2 mg/dL, kalsium 8,4 mg/dL."},{id:"crp",l:"CRP (penanda inflamasi)",c:15,n:1,r:"CRP 12 mg/L (meningkat ringan sampai sedang)."},{id:"usg",l:"USG tiroid",c:40,n:0,r:"Tidak ada kelainan. Tidak relevan untuk keputusan gizi."}],
+ st:[
+ {id:"h1",ph:"Skrining gizi",tt:"Hitung penurunan berat badan",ty:"num",dims:["acc"],tx:"Hitung persentase penurunan berat badan pasien dalam 3 bulan terakhir.",ans:5.45,tol:.02,un:"%",fm:"% penurunan BB = (BB awal − BB sekarang) / BB awal × 100",steps:"(55 − 52) / 55 × 100 = 5,45%. Penurunan lebih dari 5% dalam 3 bulan memenuhi salah satu kriteria protein-energy wasting.",cm:[{v:5.77,msg:"Kamu membagi dengan BB sekarang (52). Pembaginya adalah BB awal (55)."}],lrn:"Perhitungan persen perubahan berat badan"},
+ {id:"h2",ph:"Asesmen gizi",tt:"Cocokkan temuan dengan kriteria PEW",ty:"match",dims:["rea"],needs:["fos","crp"],tx:"Minta pemeriksaan yang relevan di panel kiri, lalu cocokkan temuan pasien dengan kriteria protein-energy wasting (ISRNM).",pairs:[["Albumin serum 3,1 g/dL","Albumin < 3,8 g/dL"],["IMT 21,6 kg/m²","IMT < 23 kg/m²"],["BB turun 5,5% dalam 3 bulan","Penurunan BB > 5% dalam 3 bulan"],["Asupan 23 kkal/kg dan 0,67 g protein/kg","Energi < 25 kkal/kg dan protein < 0,8 g/kg"]],ch:["Albumin < 3,8 g/dL","IMT < 23 kg/m²","Penurunan BB > 5% dalam 3 bulan","Energi < 25 kkal/kg dan protein < 0,8 g/kg"],why:"Kriteria ISRNM mencakup biokimia, massa tubuh, perubahan berat badan, dan asupan. Pasien memenuhi keempat kategori. Inflamasi (CRP) dan fosfor dibutuhkan untuk menjelaskan penyebab dan menentukan pembatasan mineral.",lrn:"Kriteria protein-energy wasting pada pasien dialisis"},
+ {id:"h3",ph:"Asesmen gizi",tt:"Urutkan prioritas masalah",ty:"order",dims:["pri"],tx:"Urutkan masalah berikut dari yang paling perlu didahulukan.",items:["Hiperkalemia (kalium 5,9 mEq/L)","Kelebihan cairan (kenaikan BB antar HD 3,5 kg, TD 150/90)","Malnutrisi protein-energi","Anemia (Hb 9,1 g/dL)"],why:"Masalah yang berisiko akut (aritmia akibat hiperkalemia dan kelebihan volume) didahulukan, lalu masalah kronik yang bisa dikoreksi lewat gizi. Anemia terutama ditangani tim medis (misalnya terapi ESA dan zat besi); dietisien mendukung. Urutan bisa berbeda menurut kondisi pasien, nilai penuh bila urutan sesuai.",lrn:"Menentukan prioritas masalah gizi pada pasien HD"},
+ {id:"h4",ph:"Diagnosis gizi",tt:"Pilih pernyataan PES",ty:"mc",dims:["acc","rea"],tx:"Pilih pernyataan PES yang paling tepat untuk masalah gizi utama pasien.",why:"Masalah gizi utama adalah malnutrisi protein-energi dengan etiologi asupan tidak adekuat dan kehilangan zat gizi saat dialisis. Hiperkalemia penting, tetapi merupakan masalah tambahan.",lrn:"PES pada malnutrisi pasien dialisis",
+  opts:[{t:"Malnutrisi (NI-5.2) berkaitan dengan asupan energi dan protein tidak adekuat akibat anoreksia dan kehilangan zat gizi saat dialisis, ditandai dengan penurunan BB 5,5% dalam 3 bulan, IMT 21,6, albumin 3,1 g/dL, dan asupan 23 kkal/kg serta 0,67 g protein/kg.",s:1,fb:"Problem, etiologi, dan tanda terukur lengkap.",e:[2,2,8]},
+  {t:"Penyakit ginjal kronik stadium 5 ditandai dengan hemodialisis 2 kali per minggu.",s:.1,fb:"Ini diagnosis medis.",mis:"Mencampur diagnosis gizi dengan diagnosis medis",e:[-1,-2,8]},
+  {t:"Kelebihan asupan mineral (kalium) berkaitan dengan konsumsi pisang dan jeruk, ditandai dengan kalium 5,9 mEq/L.",s:.5,fb:"Valid sebagai masalah tambahan, tetapi bukan masalah gizi yang paling utama menurut data berat badan, asupan, dan albumin.",mis:"Hanya melihat satu masalah mineral dan melewatkan malnutrisi",e:[0,-1,8]},
+  {t:"Berat badan lebih berkaitan dengan asupan berlebihan, ditandai dengan kenaikan BB antar HD 3,5 kg.",s:0,fb:"Kenaikan BB antar HD berasal dari cairan, bukan jaringan lemak.",mis:"Menyamakan kenaikan cairan dengan penambahan massa tubuh",e:[-2,-3,8]}]},
+ {id:"h5",ph:"Intervensi gizi",tt:"Hitung kebutuhan protein",ty:"num",dims:["acc"],tx:"Hitung kebutuhan protein harian pasien dengan 1,2 g/kg BBI. Gunakan BBI Broca = 90% × (TB − 100).",ans:59.4,tol:.03,un:"g/hari",fm:"BBI = 0,9 × (TB − 100); protein = 1,2 × BBI",steps:"BBI = 0,9 × (155 − 100) = 49,5 kg. Protein = 1,2 × 49,5 = 59,4 g/hari.",cm:[{v:62.4,msg:"Kamu memakai BB kering (52 kg). Soal meminta BBI Broca (49,5 kg)."}],lrn:"Perhitungan protein berbasis BBI pada hemodialisis"},
+ {id:"h6",ph:"Intervensi gizi",tt:"Hitung batas cairan",ty:"num",dims:["acc"],tx:"Hitung batas asupan cairan harian: jumlah urine 24 jam ditambah 500 mL.",ans:900,tol:.03,un:"mL/hari",fm:"Cairan = urine 24 jam + 500 mL",steps:"400 + 500 = 900 mL/hari. Tambahan 500 mL mewakili kehilangan cairan yang tidak terlihat.",cm:[{v:400,msg:"Itu hanya jumlah urine. Tambahkan 500 mL."}],lrn:"Perhitungan batas cairan pasien HD"},
+ {id:"h7",ph:"Intervensi gizi",tt:"Tentukan preskripsi diet",ty:"mc",dims:["acc","saf"],tx:"Tentukan preskripsi diet yang paling tepat.",why:"Pasien HD kehilangan asam amino saat dialisis, sehingga protein 1,2 g/kg BBI dengan energi 30-35 kkal/kg dianjurkan. Kalium, fosfor, natrium, dan cairan dibatasi sesuai data.",lrn:"Preskripsi diet pasien hemodialisis",
+  opts:[{t:"Energi 30-35 kkal/kg BBI (±1.500-1.750 kkal), protein 1,2 g/kg BBI (±59 g), batasi kalium, fosfor, dan natrium, cairan ±900 mL/hari, porsi kecil sering, suplemen oral bila perlu.",s:1,e:[8,6,10],set:["ok"],fb:"Memenuhi kebutuhan protein-energi sambil mengendalikan kalium, fosfor, dan cairan."},
+  {t:"Protein 0,6 g/kg BBI agar ureum turun dan cairan bebas karena sudah dicuci darah.",s:.1,e:[-12,-5,10],set:["lowprot"],fb:"Target pra-dialisis tidak berlaku untuk HD, dan cairan harus dibatasi karena urine sedikit.",mis:"Memakai target protein pra-dialisis pada pasien HD"},
+  {t:"Protein 1,2 g/kg BBI dan makan bebas karena kalium dan fosfor akan dibuang saat HD.",s:.3,e:[-8,-3,10],set:["bebask"],fb:"HD dua kali seminggu tidak cukup menahan kalium bila asupan tinggi.",mis:"Mengandalkan dialisis untuk membuang kelebihan kalium"}]},
+ {id:"h7a",if:"lowprot",ph:"Kejadian tak terduga",tt:"Dua minggu kemudian",ty:"mc",dims:["saf","rea"],tx:"Albumin 2,8 g/dL, edema bertambah, asupan turun menjadi ±900 kkal. (Konsekuensi simulasi.) Tindakan terbaik?",why:"Restriksi protein menurunkan albumin dan memperburuk wasting pada HD. Koreksi preskripsi dan koordinasikan dengan dokter.",lrn:"Dampak restriksi protein berlebih pada pasien HD",
+  opts:[{t:"Naikkan protein ke 1,2 g/kg BBI dan energi 30-35 kkal/kg, diskusikan dengan dokter, evaluasi ulang.",s:1,e:[10,5,6],fb:"Mengoreksi sumber masalah."},{t:"Pertahankan diet karena albumin akan naik sendiri.",s:0,e:[-10,-8,6],fb:"Tidak ada dasar untuk menunggu.",mis:"Mempertahankan preskripsi yang terbukti merugikan"},{t:"Minta infus albumin saja dan lanjutkan diet yang sama.",s:.2,e:[1,-2,6],fb:"Infus albumin keputusan medis dan bukan pengganti perbaikan asupan.",mis:"Mengganti perbaikan gizi dengan terapi medis"}]},
+ {id:"h7b",if:"bebask",ph:"Kejadian tak terduga",tt:"Pasien lemah dan jantung berdebar",ty:"mc",dims:["saf","pri"],tx:"Pasien nyeri otot, lemah, jantung berdebar. Kalium 6,4 mEq/L. (Konsekuensi simulasi.) Tindakan paling tepat?",why:"Kalium > 6,0 mEq/L berisiko aritmia dan membutuhkan penanganan medis segera. Dietisien segera mengeskalasi dan menghentikan sumber kalium tinggi.",lrn:"Eskalasi dan penanganan hiperkalemia berat",
+  opts:[{t:"Segera laporkan ke dokter atau perawat HD, minta penanganan medis, dan hentikan makanan tinggi kalium.",s:1,e:[12,6,5],fb:"Eskalasi cepat untuk kondisi berisiko aritmia."},{t:"Tunggu jadwal HD lusa lalu edukasi ulang soal diet.",s:0,e:[-20,-10,5],fb:"Terlalu lambat untuk kondisi berisiko aritmia.",mis:"Menunda eskalasi hiperkalemia berat"},{t:"Minta pasien banyak minum agar kalium terbuang lewat urine.",s:0,e:[-12,-5,5],fb:"Urine sedikit dan cairan sudah berlebih, risiko kelebihan volume.",mis:"Menambah cairan pada pasien oliguria"}]},
+ {id:"h8",ph:"Monitoring dan evaluasi",tt:"Tentukan parameter pemantauan",ty:"short",dims:["acc","rea"],tx:"Sebutkan minimal tiga parameter yang kamu pantau pada pasien ini.",kw:[["albumin"],["berat badan","bb ","imt"],["kalium"],["asupan","recall","food record"],["fosfor"],["cairan","idwg","kenaikan bb"]],need:3,best:"Antara lain: albumin dan status inflamasi, berat badan kering dan kenaikan BB antar HD, kalium dan fosfor serum, asupan energi dan protein (recall atau catatan makan), kepatuhan pembatasan cairan, serta Hb bersama tim medis.",lrn:"Parameter monitoring pasien hemodialisis"}
+ ]}
+];
+
+/* ===== mesin kasus ===== */
+var CS=null,CASESAVE="gizi-jona-casesave",CASEJ="gizi-jona-cases";
+var cdef=function(id){return CASEDB.filter(function(c){return c.id===(id||CS.id)})[0]};
+var fmtN=function(n){return String(Math.round(n*100)/100).replace(".",",")};
+function cond(st){return !st.if||(st.if.charAt(0)==="!"?!CS.flags[st.if.slice(1)]:!!CS.flags[st.if])}
+function saveCase(){save(CASESAVE,{id:CS.id,i:CS.i,flags:CS.flags,k:CS.k,r:CS.r,m:CS.m,req:CS.req,rec:CS.rec})}
+function showCases(){show("#s-case");CS=null;renderCaseList()}
+function renderCaseList(){
+  var J=load(CASEJ,[]),sv=load(CASESAVE,null),el=$("#s-case");
+  var best=function(id){var b=null;J.forEach(function(j){if(j.id===id&&(b===null||j.score>b))b=j.score});return b};
+  el.innerHTML='<div class="cr-top"><button class="btn" data-act="menu">Menu</button><div><h1>Patient Case Room</h1><small>Pasien dengan data klinis lengkap, lima tahap, keputusan bercabang</small></div></div>'
+   +'<p class="notice">'+VERIF+'</p>'
+   +(sv&&cdef(sv.id)?'<div class="panel" style="margin-bottom:12px"><b>Kasus yang belum selesai</b><p>'+cdef(sv.id).title+'</p><div class="row"><button class="btn primary" data-act="resume">Lanjutkan</button><button class="btn" data-act="discard">Buang progres</button></div></div>':"")
+   +'<div class="cases">'+CASEDB.map(function(c){var b=best(c.id);return '<div class="panel case-card"><div class="tags"><em>'+c.cat+'</em><em class="lv'+c.lv+'">'+LV[c.lv]+'</em><em>'+c.est+'</em></div><h2>'+c.title+'</h2><p class="muted">'+c.pt.nama+', '+c.pt.usia+'. '+c.pt.dx+'.</p><p class="muted">'+c.st.filter(function(s){return !s.if}).length+' tahap utama'+(c.st.some(function(s){return s.if})?' dan kejadian bercabang':'')+'. '+(b===null?'Belum dimainkan.':'Skor terbaik '+b+'.')+'</p><button class="btn primary" data-act="start" data-id="'+c.id+'">Mulai kasus</button></div>'}).join("")+'</div>';
+}
+function startCase(id){CS={id:id,i:-1,flags:{},k:60,r:60,m:0,req:{},rec:[],sid:null};nextStage()}
+function resumeCase(){var d=load(CASESAVE,null);if(!d||!cdef(d.id))return renderCaseList();CS={id:d.id,i:d.i,flags:d.flags,k:d.k,r:d.r,m:d.m,req:d.req,rec:d.rec,sid:null};renderPlay()}
+function nextStage(){var c=cdef(),i=CS.i+1;while(i<c.st.length&&!cond(c.st[i]))i++;if(i>=c.st.length)return finishCase();CS.i=i;CS.sub=null;CS.pick=null;saveCase();renderPlay();window.scrollTo(0,0)}
+function meter(l,v,cls,txt){return '<div class="meter '+cls+'"><div class="top"><span>'+l+'</span><b>'+(txt||Math.round(v))+'</b></div><div class="track"><i style="width:'+clamp(v,0,100)+'%"></i></div></div>'}
+function sec(h,t){return '<div class="sec"><h3>'+h+'</h3><p>'+t+'</p></div>'}
+function chartHTML(c){var p=c.pt,R=c.req.filter(function(x){return CS.req[x.id]});
+  return '<div class="chart panel"><div class="pc-head"><span class="npc-av" id="pc-av"></span><div><b>'+p.nama+'</b><br><small>'+p.usia+'</small></div></div>'+sec("Diagnosis medis",p.dx)+sec("Keluhan utama",p.kel)+sec("Riwayat penyakit",p.rw)+sec("Antropometri",p.an)+sec("Pemeriksaan fisik",p.fi)+sec("Riwayat asupan makan",p.mk)+sec("Laboratorium",p.lab)
+   +(R.length?'<div class="sec new"><h3>Hasil pemeriksaan tambahan</h3>'+R.map(function(x){return '<p><b>'+x.l+':</b> '+x.r+'</p>'}).join("")+'</div>':"")+'</div>'}
+function reqHTML(c){return '<div class="panel"><h2>Minta pemeriksaan</h2><p class="muted" style="margin:0 0 8px">Hasil baru muncul bila diminta. Tiap pemeriksaan memakan waktu.</p><div class="reqs">'+c.req.map(function(x){return '<button class="btn" data-act="req" data-id="'+x.id+'"'+(CS.req[x.id]?" disabled":"")+'>'+(CS.req[x.id]?"Sudah diminta: ":"")+x.l+' <small>'+(CS.req[x.id]?"":"+"+x.c+" menit")+'</small></button>'}).join("")+'</div></div>'}
+function prepare(st){
+  if(CS.sid===st.id)return;CS.sid=st.id;CS.pick=null;
+  if(st.ty==="mc")CS.opts=shuffle(st.opts);
+  if(st.ty==="order")CS.order=shuffle(st.items.map(function(t,i){return i}));
+  CS.draft=null;
+}
+function snap(){var n=$("#ans"),t=$("#txt"),m=[].map.call(document.querySelectorAll("select.mt"),function(s){return s.value});return{n:n?n.value:"",t:t?t.value:"",m:m}}
+function stageHTML(c,st){
+  var h='<div class="eyebrow"><span>'+st.ph+'</span><span>Tahap '+(CS.i+1)+' dari '+c.st.length+'</span></div><h2>'+st.tt+'</h2><p class="q">'+st.tx+'</p>',D=CS.draft||{n:"",t:"",m:[]};
+  if(CS.sub){return h+reviewHTML(st)}
+  if(st.ty==="mc")h+='<div class="opts">'+CS.opts.map(function(o,i){return '<button class="opt'+(CS.pick===i?" sel":"")+'" data-act="pick" data-i="'+i+'">'+o.t+'</button>'}).join("")+'</div><div class="row"><button class="btn primary" data-act="submit"'+(CS.pick===null?" disabled":"")+'>Kirim keputusan</button></div>';
+  if(st.ty==="num")h+='<div class="num"><input id="ans" type="text" inputmode="decimal" autocomplete="off" aria-label="Jawaban numerik" value="'+D.n+'"><span>'+st.un+'</span></div><p class="muted">Rumus: '+st.fm+'. Pembulatan 2 desimal diterima.</p><div class="row"><button class="btn primary" data-act="submit">Periksa jawaban</button></div>';
+  if(st.ty==="match")h+='<div class="matches">'+st.pairs.map(function(p,i){return '<label><span>'+p[0]+'</span><select class="mt" aria-label="'+p[0]+'"><option value="">Pilih...</option>'+st.ch.map(function(x){return '<option'+(D.m[i]===x?" selected":"")+'>'+x+'</option>'}).join("")+'</select></label>'}).join("")+'</div><div class="row"><button class="btn primary" data-act="submit">Kirim pasangan</button></div>';
+  if(st.ty==="order")h+='<ol class="ol" id="ol">'+CS.order.map(function(ix,p){return '<li draggable="true" data-p="'+p+'"><span class="grip" aria-hidden="true">⠿</span><span class="ot">'+st.items[ix]+'</span><button class="btn sm" data-act="up" data-p="'+p+'" aria-label="Naikkan"'+(p?"":" disabled")+'>↑</button><button class="btn sm" data-act="down" data-p="'+p+'" aria-label="Turunkan"'+(p<CS.order.length-1?"":" disabled")+'>↓</button></li>'}).join("")+'</ol><p class="muted">Seret atau gunakan tombol panah.</p><div class="row"><button class="btn primary" data-act="submit">Kirim urutan</button></div>';
+  if(st.ty==="short")h+='<textarea id="txt" rows="5" aria-label="Jawaban singkat" placeholder="Tulis jawabanmu...">'+D.t+'</textarea><div class="row"><button class="btn primary" data-act="submit">Kirim jawaban</button></div>';
+  return h}
+function reviewHTML(st){var r=CS.sub,e=r.eff;
+  return '<div class="fb '+(r.f>=.7?"ok":"no")+'" role="status"><h3>'+(r.f>=.99?"Tepat":r.f>=.7?"Cukup tepat":r.f>=.3?"Sebagian benar":"Belum tepat")+' ('+Math.round(r.f*100)+'%)</h3><p><b>Jawabanmu:</b> '+r.resp+'</p>'+(r.f<.99?'<p><b>Paling tepat:</b> '+r.best+'</p>':"")+'<p>'+r.fb+'</p>'+(st.why?'<p><b>Alasan klinis:</b> '+st.why+'</p>':"")+(r.miss&&r.miss.length?'<p class="no">Data yang seharusnya kamu minta sebelum memutuskan: '+r.miss.join(", ")+'.</p>':"")
+   +'<div class="chips">'+(e[0]?'<span class="chip '+(e[0]>0?"up":"down")+'">Kondisi '+(e[0]>0?"+":"")+e[0]+'</span>':"")+(e[1]?'<span class="chip '+(e[1]>0?"up":"down")+'">Kepercayaan '+(e[1]>0?"+":"")+e[1]+'</span>':"")+'<span class="chip">+'+e[2]+' menit</span></div><button class="btn primary" data-act="next">Lanjut</button></div>'}
+function phaseBar(st){var cur=PHASES.indexOf(st.ph);return '<div class="phases" aria-label="Tahapan kasus">'+PHASES.map(function(p,i){return '<span class="'+(i<cur?"done":i===cur?"on":"")+'">'+p+'</span>'}).join("")+(cur<0?'<span class="on ev">'+st.ph+'</span>':"")+'</div>'}
+function renderPlay(){
+  var c=cdef(),st=c.st[CS.i],el=$("#s-case"),over=CS.m>c.budget;prepare(st);
+  el.innerHTML='<div class="cr-top"><button class="btn" data-act="exit">Keluar</button><div><b>'+c.title+'</b><br><small>'+c.cat+'</small></div></div>'+phaseBar(st)
+   +'<div class="cr-grid"><aside><div class="panel meters">'+meter("Kondisi pasien",CS.k,"kon")+meter("Kepercayaan pasien",CS.r,"tru")+meter("Waktu",Math.min(100,CS.m/c.budget*100),"tim"+(over?" over":""),CS.m+" / "+c.budget+" mnt")+'</div>'+chartHTML(c)+reqHTML(c)+'</aside><div class="stage-card" id="stage">'+stageHTML(c,st)+'</div></div>';
+  $("#pc-av").innerHTML=av("patient",CS.k<40);
+}
+function doRequest(id){var c=cdef(),x=c.req.filter(function(q){return q.id===id})[0];if(!x||CS.req[id]||CS.sub)return;CS.req[id]=1;CS.m+=x.c;CS.draft=snap();saveCase();renderPlay();toast("Hasil "+x.l+" tersedia di rekam pasien. +"+x.c+" menit.","ach")}
+function applyE(e,st,f){CS.k=clamp(CS.k+e[0],0,100);CS.r=clamp(CS.r+e[1],0,100);CS.m+=e[2]}
+function submitStage(){
+  var c=cdef(),st=c.st[CS.i],r=null,e;
+  if(CS.sub)return;
+  if(st.ty==="mc"){var o=CS.opts[CS.pick];if(!o)return;var b=st.opts.filter(function(x){return x.s===1})[0];e=o.e||[0,0,st.t||8];
+    (o.set||[]).forEach(function(f){CS.flags[f]=1});r={f:o.s,resp:o.t,best:b.t,fb:o.fb||"",mis:o.mis,l:o.l}}
+  else if(st.ty==="num"){var v=parseFloat(String($("#ans").value).replace(",","."));if(isNaN(v)){toast("Isi jawaban numerik dulu.","warn");return}
+    var rel=Math.abs(v-st.ans)/st.ans,f=rel<=st.tol?1:rel<=st.tol*4?.5:0,msg="";
+    (st.cm||[]).forEach(function(m){if(Math.abs(v-m.v)/m.v<=st.tol)msg=m.msg+" "});
+    e=f>=.7?[3,3,st.t||8]:[-3,-3,st.t||8];
+    r={f:f,resp:fmtN(v)+" "+st.un,best:fmtN(st.ans)+" "+st.un,fb:(f===1?"Perhitunganmu tepat. ":f===.5?"Mendekati, periksa pembulatan. ":msg)+"<br><b>Langkah:</b> "+st.steps,mis:f<1?"Kesalahan perhitungan: "+st.tt:null}}
+  else if(st.ty==="match"){var sel=[].map.call(document.querySelectorAll("select.mt"),function(s){return s.value}),ok=0,lines=[];
+    st.pairs.forEach(function(p,i){var g=sel[i]===p[1];if(g)ok++;lines.push((g?"✓ ":"✗ ")+p[0]+" → "+(sel[i]||"(kosong)")+(g?"":" (seharusnya "+p[1]+")"))});
+    var f=ok/st.pairs.length;e=f>=.7?[3,3,st.t||8]:[-3,-3,st.t||8];
+    r={f:f,resp:lines.join("<br>"),best:st.pairs.map(function(p){return p[0]+" → "+p[1]}).join("<br>"),fb:ok+" dari "+st.pairs.length+" pasangan tepat."}}
+  else if(st.ty==="order"){var ord=CS.order,n=ord.length,conc=0,tot=0;for(var i=0;i<n;i++)for(var j=i+1;j<n;j++){tot++;if(ord[i]<ord[j])conc++}
+    var f=conc/tot;e=f>=.7?[3,3,st.t||8]:[-3,-3,st.t||8];
+    r={f:f,resp:ord.map(function(ix,p){return (p+1)+". "+st.items[ix]}).join("<br>"),best:st.items.map(function(t,p){return (p+1)+". "+t}).join("<br>"),fb:Math.round(f*100)+"% pasangan urutan sudah benar."}}
+  else if(st.ty==="short"){var t=($("#txt").value||"").toLowerCase();if(t.trim().length<5){toast("Tulis jawabanmu dulu.","warn");return}
+    var hit=0,names=[];st.kw.forEach(function(g){if(g.some(function(w){return t.indexOf(w)>=0})){hit++;names.push(g[0])}});
+    var f=Math.min(1,hit/st.need);e=f>=.7?[3,3,st.t||8]:[-3,-3,st.t||8];
+    r={f:f,resp:$("#txt").value.replace(/[<>&]/g,""),best:st.best,fb:"Kata kunci konsep yang terdeteksi: "+(names.join(", ")||"belum ada")+" ("+hit+" dari minimal "+st.need+"). Penilaian memakai kata kunci, jadi parafrase yang benar mungkin belum terdeteksi: bandingkan dengan jawaban model."}}
+  var miss=[];if(st.needs){st.needs.forEach(function(id){if(!CS.req[id])miss.push(c.req.filter(function(q){return q.id===id})[0].l)});
+    CS.rec.push({hidden:1,dims:["rea"],f:(st.needs.length-miss.length)/st.needs.length})}
+  r.miss=miss;r.eff=e;applyE(e);
+  CS.rec.push({sid:st.id,tt:st.tt,ph:st.ph,ty:st.ty,dims:st.dims,f:r.f,resp:r.resp,best:r.best,why:st.why||"",fb:r.fb,mis:r.mis,lrn:r.l||st.lrn});
+  CS.sub=r;renderPlay();
+}
+function finishCase(){
+  var c=cdef(),sums={},ws={};
+  CS.rec.forEach(function(x){(x.dims||[]).forEach(function(d){sums[d]=(sums[d]||0)+x.f;ws[d]=(ws[d]||0)+1})});
+  var over=Math.max(0,CS.m-c.budget);sums.eff=clamp(1-over/c.budget,0,1);ws.eff=1;
+  var dims={},tot=0,wt=0;Object.keys(DIMS).forEach(function(d){if(ws[d]){dims[d]=sums[d]/ws[d];tot+=dims[d]*DIMS[d][1];wt+=DIMS[d][1]}});
+  var score=Math.round(tot/wt*100),out=CS.k>=70?"Membaik":CS.k>=45?"Stabil":"Memburuk";
+  var J=load(CASEJ,[]);J.push({id:c.id,title:c.title,t:Date.now(),score:score,dims:dims,out:out,k:CS.k,r:CS.r,m:CS.m});save(CASEJ,J.slice(-50));
+  try{localStorage.removeItem(CASESAVE)}catch(e){}
+  var shown=CS.rec.filter(function(x){return !x.hidden}),lrn=[];
+  shown.forEach(function(x){if(x.f<.7&&x.lrn&&lrn.indexOf(x.lrn)<0)lrn.push(x.lrn)});
+  var el=$("#s-case");
+  el.innerHTML='<div class="cr-top"><button class="btn" data-act="list">Daftar kasus</button><div><b>Clinical debriefing</b><br><small>'+c.title+'</small></div></div>'
+   +'<div class="panel"><div class="endhead"><span class="npc-av" id="pc-av"></span><div><div class="eyebrow">Hasil klinis dalam simulasi</div><h2>'+out+'</h2><small>Kondisi '+Math.round(CS.k)+' · Kepercayaan '+Math.round(CS.r)+' · Waktu '+CS.m+' dari '+c.budget+' menit</small></div></div><div class="big">'+score+'</div>'
+   +Object.keys(DIMS).map(function(d){return dims[d]===undefined?"":'<div class="dimrow"><span>'+DIMS[d][0]+'</span><div class="track"><i style="width:'+Math.round(dims[d]*100)+'%"></i></div><b>'+Math.round(dims[d]*100)+'%</b></div>'}).join("")+'</div>'
+   +'<h2 style="margin-top:16px">Ringkasan keputusan</h2>'+shown.map(function(x){return '<details'+(x.f<.7?" open":"")+'><summary><b>'+x.ph+':</b> '+x.tt+' <span class="chip '+(x.f>=.7?"up":"down")+'">'+Math.round(x.f*100)+'%</span></summary><p><b>Jawabanmu:</b> '+x.resp+'</p>'+(x.f<.99?'<p><b>Paling tepat:</b> '+x.best+'</p>':"")+'<p>'+x.fb+'</p>'+(x.why?'<p><b>Alasan klinis:</b> '+x.why+'</p>':"")+(x.mis?'<p class="no"><b>Miskonsepsi:</b> '+x.mis+'</p>':"")+'</details>'}).join("")
+   +'<div class="panel" style="margin-top:12px"><h2>Perlu dipelajari kembali</h2>'+(lrn.length?'<ul>'+lrn.map(function(x){return '<li>'+x+'</li>'}).join("")+'</ul>':'<p>Tidak ada topik yang jelas lemah. Tinjau referensi untuk memperdalam.</p>')+'<h2>Referensi</h2><ul>'+c.ref.map(function(x){return '<li>'+x+'</li>'}).join("")+'</ul><p class="notice">'+VERIF+'</p></div>'
+   +'<div class="row"><button class="btn primary" data-act="start" data-id="'+c.id+'">Main lagi</button><button class="btn" data-act="list">Daftar kasus</button><button class="btn" data-act="menu">Menu</button></div>';
+  $("#pc-av").innerHTML=av("patient",out==="Memburuk");window.scrollTo(0,0);
+}
+function renderRecent(){var J=load(CASEJ,[]).slice(-3).reverse(),el=$("#recent");
+  el.hidden=!J.length;el.innerHTML=J.length?'<h2>Kasus terbaru</h2><div class="rc">'+J.map(function(j){return '<div><b>'+j.title+'</b><small>'+new Date(j.t).toLocaleDateString("id-ID")+' · skor '+j.score+' · '+j.out+'</small></div>'}).join("")+'</div>':""}
+function caseClick(e){
+  var b=e.target.closest("[data-act]");if(!b)return;var a=b.dataset.act;
+  if(a==="menu"){CS=null;show("#s-menu");refreshMenu()}
+  else if(a==="list")showCases();
+  else if(a==="start")startCase(b.dataset.id);
+  else if(a==="resume")resumeCase();
+  else if(a==="discard"){try{localStorage.removeItem(CASESAVE)}catch(x){}renderCaseList()}
+  else if(a==="exit"){saveCase();showCases()}
+  else if(a==="req")doRequest(b.dataset.id);
+  else if(a==="pick"){CS.pick=+b.dataset.i;renderPlay()}
+  else if(a==="submit")submitStage();
+  else if(a==="next")nextStage();
+  else if(a==="up"||a==="down"){var p=+b.dataset.p,q=a==="up"?p-1:p+1,o=CS.order;CS.draft=snap();var t=o[p];o[p]=o[q];o[q]=t;renderPlay()}
+}
+function caseDrag(){
+  var from=null,root=$("#s-case");
+  root.addEventListener("dragstart",function(e){var li=e.target.closest&&e.target.closest("li[data-p]");if(li){from=+li.dataset.p;if(e.dataTransfer)e.dataTransfer.effectAllowed="move"}});
+  root.addEventListener("dragover",function(e){if(from!==null)e.preventDefault()});
+  root.addEventListener("drop",function(e){var li=e.target.closest&&e.target.closest("li[data-p]");if(from===null||!li)return;e.preventDefault();var to=+li.dataset.p,o=CS.order,it=o.splice(from,1)[0];o.splice(to,0,it);from=null;renderPlay()});
+}
+
+/* ===== EVENTS ===== */
+$("#logo").innerHTML=plateSVG();
+$("#m-continue").addEventListener("click",resume);
+$("#m-new").addEventListener("click",function(){confirmNew("normal")});
+$("#m-daily").addEventListener("click",function(){confirmNew("daily")});
+$("#rooms").addEventListener("click",function(e){var b=e.target.closest("[data-room]");if(!b)return;ROOMS.filter(function(r){return r.id===b.dataset.room})[0].fn()});
+$("#tasks").addEventListener("click",function(e){var b=e.target.closest(".task");if(b&&S&&!S.paused)openTask(b.dataset.id)});
+$("#areas").addEventListener("click",function(e){var b=e.target.closest("[data-a]");if(!b)return;AREA=b.dataset.a;renderScene();renderTasks()});
+$("#b-pause").addEventListener("click",function(){
+  if(!S||S.over||S.paused)return;S.paused=true;saveShift();
+  modal('<h2>Shift dijeda</h2><p>Antrean dan jam berhenti. Lanjutkan kalau sudah siap, atau simpan dan kembali ke menu.</p>',[{t:"Lanjutkan",primary:true,fn:closeOverlay},{t:"Simpan dan ke menu",fn:function(){onClose=null;$("#overlay").hidden=true;toMenu()}}],function(){S.paused=false;last=performance.now()});
+});
+$("#b-break").addEventListener("click",function(){
+  if(S.paused||S.over||S.dompet<5000)return;
+  S.dompet-=5000;S.tenaga=clamp(S.tenaga+30,0,100);S.moral=clamp(S.moral+3,0,100);S.breaks++;
+  logLine("Jeda ngopi 15 menit.");toast("Ngopi dulu. Tenaga +30, moral +3.","ach");advance(15);hud();saveShift();
+});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!$("#overlay").hidden)closeOverlay()});
+document.addEventListener("visibilitychange",function(){if(document.hidden)saveShift()});
+window.addEventListener("pagehide",saveShift);
+$("#m-cases").addEventListener("click",showCases);$("#s-case").addEventListener("click",caseClick);caseDrag();
+refreshMenu();
+window.GJ={get state(){return S},advance:function(m){advance(m);hud()},POOL:POOL,BADGES:BADGES,ROOMS:ROOMS,CASEDB:CASEDB,get cs(){return CS}}; /* pintu masuk untuk Phase 2 dan pengujian */
+})();
+</script>
+</body></html>
